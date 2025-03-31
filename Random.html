@@ -1,36 +1,151 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>快速反應遊戲</title>
-    <style>
-        body { text-align: center; font-family: Arial, sans-serif; }
-        #target { width: 100px; height: 100px; background-color: red; position: absolute; }
-    </style>
+    <title>快速反應遊戲</title>
+    <style>
+        body { 
+            text-align: center; 
+            font-family: Arial, sans-serif; 
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        #gameArea {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            margin: 20px auto;
+            border: 2px solid #333;
+            background-color: white;
+            overflow: hidden;
+        }
+        #target { 
+            width: 80px; 
+            height: 80px; 
+            background-color: #ff4444; 
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        #target:hover {
+            transform: scale(1.1);
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
-    <h1>點擊紅色方塊！</h1>
-    <p>點擊紅色方塊以獲得分數，速度越快越好！</p>
-    <div id="target"></div>
-    <p id="score">分數：0</p>
-    <script>
-        let score = 0;
-        const target = document.getElementById('target');
-        const scoreDisplay = document.getElementById('score');
- 
-        function moveTarget() {
-            const x = Math.random() * (window.innerWidth - 100);
-            const y = Math.random() * (window.innerHeight - 100);
-target.style.left = x + 'px';
-target.style.top = y + 'px';
-        }
- 
-        target.addEventListener('click', () => {
-            score++;
-            scoreDisplay.textContent = `分數：${score}`;
-            moveTarget();
-        });
- 
-        document.addEventListener('DOMContentLoaded', moveTarget);
-    </script>
+    <h1>點擊紅色方塊！</h1>
+    <p>在時間結束前盡可能多地點擊紅色方塊！</p>
+    <button id="startButton" class="button">開始遊戲</button>
+    <button id="resetButton" class="button" style="display: none;">重新開始</button>
+    <div>
+        <p id="score">分數：0</p>
+        <p id="time">剩餘時間：30</p>
+        <p id="highScore">最高分數：0</p>
+    </div>
+    <div id="gameArea">
+        <div id="target"></div>
+    </div>
+
+    <script>
+        let score = 0;
+        let timeLeft = 30;
+        let highScore = localStorage.getItem('highScore') || 0;
+        let gameActive = false;
+        let timer;
+
+        const target = document.getElementById('target');
+        const scoreDisplay = document.getElementById('score');
+        const timeDisplay = document.getElementById('time');
+        const highScoreDisplay = document.getElementById('highScore');
+        const startButton = document.getElementById('startButton');
+        const resetButton = document.getElementById('resetButton');
+        const gameArea = document.getElementById('gameArea');
+
+        highScoreDisplay.textContent = `最高分數：${highScore}`;
+
+        function moveTarget() {
+            if (!gameActive) return;
+            const maxX = gameArea.clientWidth - target.offsetWidth;
+            const maxY = gameArea.clientHeight - target.offsetHeight;
+            const x = Math.random() * maxX;
+            const y = Math.random() * maxY;
+            target.style.left = x + 'px';
+            target.style.top = y + 'px';
+            
+            // Random color for visual variety
+            target.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
+        }
+
+        function startGame() {
+            if (gameActive) return;
+            gameActive = true;
+            score = 0;
+            timeLeft = 30;
+            scoreDisplay.textContent = `分數：${score}`;
+            timeDisplay.textContent = `剩餘時間：${timeLeft}`;
+            startButton.style.display = 'none';
+            resetButton.style.display = 'inline';
+            target.style.display = 'block';
+            
+            moveTarget();
+            timer = setInterval(() => {
+                timeLeft--;
+                timeDisplay.textContent = `剩餘時間：${timeLeft}`;
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(timer);
+            target.style.display = 'none';
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('highScore', highScore);
+                highScoreDisplay.textContent = `最高分數：${highScore}`;
+            }
+            alert(`遊戲結束！你的分數是：${score}`);
+        }
+
+        target.addEventListener('click', () => {
+            if (!gameActive) return;
+            score++;
+            scoreDisplay.textContent = `分數：${score}`;
+            moveTarget();
+            
+            // Visual feedback
+            target.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                target.style.transform = 'scale(1)';
+            }, 100);
+        });
+
+        startButton.addEventListener('click', startGame);
+        resetButton.addEventListener('click', () => {
+            endGame();
+            resetButton.style.display = 'none';
+            startButton.style.display = 'inline';
+            target.style.display = 'none';
+        });
+
+        // Initial setup
+        target.style.display = 'none';
+    </script>
 </body>
 </html>

@@ -279,7 +279,7 @@
     const boardSize = 6;
     const boardElement = document.getElementById('board');
     const moveCounter = document.getElementById('moveCounter');
-    const timerElement = document.getElementById('timer');
+    
     const modal = document.getElementById('modal');
     const overlay = document.getElementById('overlay');
     const endModal = document.getElementById('endModal');
@@ -289,7 +289,7 @@
     let knightPosition = null;
     let moveCount = 0;
     let gameStarted = false;
-    let timeLeft = 60;
+    
     let timerInterval = null;
     let playerName = "玩家";
     // 自定义棋子图片路径
@@ -432,19 +432,7 @@
       return getValidMoves(row, col).length > 0;
     }
 
-    function startTimer() {
-      timeLeft = 60;
-      timerElement.textContent = `剩餘時間: ${timeLeft} 秒`;
-      timerInterval = setInterval(() => {
-        timeLeft--;
-        document.getElementById('timeSound').play();
-        timerElement.textContent = `剩餘時間: ${timeLeft} 秒`;
-        if (timeLeft <= 0) {
-          clearInterval(timerInterval);
-          endGame();
-        }
-      }, 1000);
-    }
+    
 
     function endGame() {
       document.getElementById('endSound').play();

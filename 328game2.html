@@ -138,19 +138,7 @@
       border: 3px solid #2c3e50;
     }
 
-    .timer {
-      font-size: 45px;
-      font-weight: 700;
-      color: #e74c3c;
-      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
-      letter-spacing: 2px;
-      padding: 8px 20px;
-      border-radius: 15px;
-      background: linear-gradient(145deg, #ffffff, #e6e6e6);
-      box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1);
-      border: 3px solid #e74c3c;
-      animation: pulse 1.5s infinite;
-    }
+   
 
     .modal {
       display: none;
@@ -238,7 +226,7 @@
   <div class="game-container">
     <div class="stats-container">
       <div class="move-counter" id="moveCounter">移動次數: 0</div>
-      <div class="timer" id="timer">剩餘時間: 60 秒</div>
+
     </div>
     <div class="board" id="board"></div>
   </div>
@@ -259,7 +247,7 @@
       <ol>
         <li>點擊棋盤上的格子來移動駿馬</li>
         <li>駿馬只能按照「日」字形移動</li>
-        <li>目標是在 60 秒內走遍最多格子</li>
+  
         <li>當時間到或無法移動時遊戲結束</li>
       </ol>
       <button onclick="startGame()">確定</button>

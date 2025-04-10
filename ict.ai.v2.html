@@ -31,14 +31,14 @@
             animation: fadeIn 0.5s ease-in;
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 20px); /* Full height minus padding */
+            height: calc(100vh - 20px);
         }
 
         h1 {
             text-align: center;
             color: #333;
             margin-bottom: 10px;
-            font-size: clamp(20px, 5vw, 24px); /* Responsive font size */
+            font-size: clamp(20px, 5vw, 24px);
         }
 
         p {
@@ -49,7 +49,7 @@
         }
 
         .chat-box {
-            flex: 1; /* Take remaining space */
+            flex: 1;
             overflow-y: auto;
             border: 1px solid #ddd;
             border-radius: 5px;
@@ -104,7 +104,7 @@
 
         .file-input {
             display: flex;
-            flex-wrap: wrap; /* Allow wrapping on small screens */
+            flex-wrap: wrap;
             align-items: center;
             gap: 8px;
         }
@@ -118,8 +118,8 @@
             cursor: pointer;
             font-size: 14px;
             transition: background 0.3s;
-            flex: 1; /* Equal width for buttons */
-            min-width: 100px; /* Minimum width to prevent shrinking too much */
+            flex: 1;
+            min-width: 100px;
         }
 
         input[type="file"] {
@@ -147,6 +147,18 @@
             display: none;
         }
 
+        .copy-share-btn {
+            margin-top: 5px;
+            padding: 5px 10px;
+            background: #28a745;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .copy-share-btn:hover {
+            background: #218838;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -164,7 +176,6 @@
             margin-top: 10px;
         }
 
-        /* Media Queries for Mobile */
         @media (max-width: 600px) {
             .container {
                 padding: 10px;
@@ -172,8 +183,8 @@
             }
 
             .chat-box {
-                height: auto; /* Allow natural height */
-                min-height: 300px; /* Minimum height for small screens */
+                height: auto;
+                min-height: 300px;
             }
 
             textarea {
@@ -218,7 +229,8 @@
         </div>
 
         <footer>
-            <br>Designed by Hugo Wong
+            <br>Advisor : Dragon Lee
+            <br>Designed by Hugo Wong 
             <br>Copyright © 2025 Wong. All rights reserved.
         </footer>
     </div>
@@ -304,7 +316,7 @@
 
         async function sendMessage() {
             const question = questionInput.value.trim();
-            const file = photoInput.fileshik[0];
+            const file = photoInput.files[0];
             const imagePreview = document.getElementById('imagePreview');
 
             if (!question && !file) {
@@ -332,7 +344,7 @@
                         const base64Image = e.target.result.split(',')[1];
                         const extractedText = await performOCR(file);
                         messageContent = [
-                            { type: "text", text: `${question || "Please analyze this ICT-related image."}\n\n**Extracted Text from Image:**\n${extractedText}` },
+                            { type: "text", text: `${question || "Please analyze this ICT-related image."}\n\n** Embedded Text from Image:**\n${extractedText}` },
                             { type: "image_url", image_url: { url: `data:image/${file.type.split('/')[1]};base64,${base64Image}`, detail: "high" } }
                         ];
                         await sendRequest(messageContent);
@@ -370,7 +382,7 @@
 
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(`API request failed: ${response.status} - ${errorText}`);
+                throw new Error(`API‍API request failed: ${response.status} - ${errorText}`);
             }
 
             const data = await response.json();
@@ -383,9 +395,47 @@
         function addMessage(content, isUser) {
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message', isUser ? 'user-message' : 'ai-message');
-            messageDiv.innerHTML = isUser ? content : content;
+            messageDiv.innerHTML = content;
+            
+            if (!isUser) {
+                const buttonDiv = document.createElement('div');
+                const copyShareBtn = document.createElement('button');
+                copyShareBtn.classList.add('copy-share-btn');
+                copyShareBtn.textContent = 'Copy/Share';
+                copyShareBtn.onclick = () => copyShareMessage(content);
+                buttonDiv.appendChild(copyShareBtn);
+                messageDiv.appendChild(buttonDiv);
+            }
+            
             chatBox.appendChild(messageDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function copyShareMessage(content) {
+            const plainText = content.replace(/<[^>]+>/g, '');
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'AI Learning Assistant Response',
+                    text: plainText,
+                }).catch(err => {
+                    console.log('Share failed, falling back to clipboard:', err);
+                    copyToClipboard(plainText);
+                });
+            } else {
+                copyToClipboard(plainText);
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    alert('Response copied to clipboard!');
+                })
+                .catch(err => {
+                    console.error('Failed to copy:', err);
+                    alert('Failed to copy. Please try manually selecting and copying the text.');
+                });
         }
 
         function formatMarkdown(text) {

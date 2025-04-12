@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Learning Platform for ICT Students</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            animation: fadeIn 0.5s ease-in;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 20px);
+        }
+
+        /* Home screen styles */
+        .home-screen {
+            width: 100%;
+            max-width: 900px;
+            background: linear-gradient(135deg, #ffffff, #e6f0fa);
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            min-height: calc(100vh - 40px);
+            animation: fadeIn 0.7s ease-in;
+        }
+
+        .home-screen h1 {
+            color: #1a3c6d;
+            font-size: clamp(28px, 6vw, 36px);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .home-screen p.tagline {
+            color: #555;
+            font-size: clamp(16px, 3vw, 18px);
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        .home-buttons {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .home-button {
+            padding: 14px 40px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: clamp(16px, 3vw, 18px);
+            transition: background 0.3s, transform 0.2s;
+            min-width: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .home-button.dictionary {
+            background: #17a2b8;
+        }
+
+        .home-button:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .home-button.dictionary:hover {
+            background: #138496;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: clamp(20px, 5vw, 24px);
+        }
+
+        p {
+            text-align: center;
+            color: #666;
+            margin-bottom: 15px;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background: #fafafa;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            margin: 8px 0;
+            padding: 8px;
+            border-radius: 5px;
+            max-width: 85%;
+            word-wrap: break-word;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .user-message {
+            background: #007bff;
+            color: #fff;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .ai-message {
+            background: #e9ecef;
+            color: #333;
+            margin-right: auto;
+        }
+
+        .input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: none;
+            height: 80px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        .file-input {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button, input[type="file"] {
+            padding: 8px 15px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+            flex: 1;
+            min-width: 100px;
+        }
+
+        input[type="file"] {
+            background: none;
+            color: #007bff;
+            padding: 8px;
+        }
+
+        button:hover, input[type="file"]:hover:not(:disabled) {
+            background: #0056b3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading::after {
+            content: " Processing...";
+        }
+
+        .preview-image {
+            max-width: 100%;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .copy-share-btn {
+            margin-top: 5px;
+            padding: 5px 10px;
+            background: #28a745;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .copy-share-btn:hover {
+            background: #218838;
+        }
+
+        /* Updated heading styles */
+        h1, h2, h3, h4, h5, h6 {
+            margin: 0;
+            color: #333;
+            line-height: 0.8;
+        }
+
+        h1 { font-size: 32px; }
+        h2 { font-size: 28px; }
+        h3 { font-size: 24px; }
+        h4 { font-size: 20px; }
+        h5 { font-size: 18px; }
+        h6 { font-size: 16px; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        footer {
+            align-self: flex-end;
+            margin-left: auto;
+            text-align: right;
+            font-size: clamp(12px, 2vw, 14px);
+            color: #666;
+            padding-top: 10px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 600px) {
+            .container, .home-screen {
+                padding: 15px;
+                min-height: calc(100vh - 30px);
+            }
+
+            .home-screen h1 {
+                font-size: clamp(24px, 5vw, 28px);
+            }
+
+            .home-screen p.tagline {
+                font-size: clamp(14px, 3vw, 16px);
+                max-width: 90%;
+            }
+
+            .home-buttons {
+                flex-direction: column;
+                gap: 15px;
+                width: 100%;
+            }
+
+            .home-button {
+                min-width: 100%;
+                padding: 12px;
+                font-size: clamp(14px, 3vw, 16px);
+            }
+
+            .chat-box {
+                height: auto;
+                min-height: 300px;
+            }
+
+            textarea {
+                height: 60px;
+                font-size: 14px;
+            }
+
+            button, input[type="file"] {
+                padding: 6px 10px;
+                font-size: 12px;
+                min-width: 80px;
+            }
+
+            .file-input {
+                gap: 5px;
+            }
+
+            .message {
+                max-width: 90%;
+                padding: 6px;
+            }
+
+            h1 { font-size: 26px; }
+            h2 { font-size: 22px; }
+            h3 { font-size: 18px; }
+            h4 { font-size: 16px; }
+            h5 { font-size: 15px; }
+            h6 { font-size: 14px; }
+
+            footer {
+                font-size: clamp(11px, 2vw, 12px);
+                padding-top: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Home Screen -->
+    <div class="home-screen" id="homeScreen">
+        <div class="content">
+            <img src="logo.jpg" alt="AI Platform Logo" style="margin-bottom: 15px; border-radius: 10px; max-width: 80px;">
+            <h1>AI Learning Platform for ICT Students</h1>
+            
+            <p align="center"> used model : grok-2-vision-latest </p>
+            <div class="home-buttons">
+                <button class="home-button" onclick="showAskAI()" aria-label="Ask AI Assistant">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                        <path d="M9 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"></path>
+                        <path d="M13 18l4 4"></path>
+                    </svg>
+                    Ask AI
+                </button>
+                <button class="home-button dictionary" onclick="showDictionaryAI()" aria-label="Dictionary AI">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                        <path d="M4 19.5V4.5A2.5 2.5 0 0 1 6.5 2h11A2.5 2.5 0 0 1 20 4.5v15A2.5 2.5 0 0 1 17.5 22h-11A2.5 2.5 0 0 1 4 19.5z"></path>
+                        <path d="M8 7h8"></path>
+                        <path d="M8 11h8"></path>
+                        <path d="M8 15h5"></path>
+                    </svg>
+                    Dictionary AI
+                </button>
+            </div>
+        </div>
+        <footer>
+            Advisor: ccckyc Dragon Lee<br>
+            Designed by Hugo Wong<br>
+            Copyright © 2025 Wong. All rights reserved.
+        </footer>
+    </div>
+
+    <!-- Ask AI Interface -->
+    <div class="container hidden" id="askAIInterface">
+        <h1>AI Learning Assistant</h1>
+        <p>Welcome ICT Students! Ask me anything about technology, coding, or ICT concepts.</p>
+
+        <div class="chat-box" id="askAIChatBox">
+            <div class="message ai-message">Hello! How can I assist you with ICT today?</div>
+        </div>
+
+        <div class="input-area">
+            <textarea id="askAIInput" placeholder="Type your question here..."></textarea>
+            <div class="file-input">
+                <input type="file" id="askAIPhotoInput" accept="image/*" onchange="previewAskAIImage()">
+                <button onclick="pasteAskAIImage()">Paste Image</button>
+                <img id="askAIImagePreview" class="preview-image" alt="Image preview">
+                <button id="askAISendBtn" onclick="sendAskAIMessage()">Send</button>
+            </div>
+        </div>
+
+        <footer>
+            Advisor: ccckyc Dragon Lee<br>
+            Designed by Hugo Wong<br>
+            Copyright © 2025 Wong. All rights reserved.
+        </footer>
+    </div>
+
+    <!-- Dictionary AI Interface -->
+    <div class="container hidden" id="dictionaryAIInterface">
+        <h1>Dictionary AI</h1>
+        <p>Enter a word or phrase to get a detailed explanation of ICT terms.</p>
+
+        <div class="chat-box" id="dictionaryAIChatBox">
+            <div class="message ai-message">Hello! Enter an ICT term to learn more about it.</div>
+        </div>
+
+        <div class="input-area">
+            <textarea id="dictionaryAIInput" placeholder="Enter word or phrase..."></textarea>
+            <div class="file-input">
+                <button id="dictionaryAISendBtn" onclick="sendDictionaryAIMessage()">Send</button>
+            </div>
+        </div>
+
+        <footer>
+            Advisor: ccckyc Dragon Lee<br>
+            Designed by Hugo Wong<br>
+            Copyright © 2025 Wong. All rights reserved.
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/tesseract.js@5.1.0/dist/tesseract.min.js"></script>
+    <script>
+        const API_URL = "https://api.x.ai/v1/chat/completions";
+        const API_KEY = "xai-DSALjuMe7HTwfBE9Uz2N0guUlQdJ0IlnwZNzvxbr1WEAfVKyBy4LNIiKZXE9fN2i3dZo6COat6xFm5z4";
+        const MODEL = "grok-2-vision-latest";
+
+        const ASK_AI_SYSTEM_PROMPT = `
+        You are an AI Learning Assistant designed for Hong Kong DSE Information and Communication Technology students. Provide clear, concise, and accurate answers related to technology, coding, and ICT concepts. Use Markdown formatting (e.g., **bold**, *italic*, ### for headings) for emphasis and structure. Use examples where applicable, avoid unnecessary jargon unless explained, and keep responses educational and beginner-friendly. For important or complicated concepts, explain them in both English and Cantonese (using traditional Chinese characters) to aid understanding. If an image is provided, analyze its content (e.g., code screenshots, diagrams) and any extracted text (via OCR) if relevant to ICT, then respond accordingly. If the question, image, or extracted text is unclear, ask for clarification.
+        `;
+
+        const DICTIONARY_AI_SYSTEM_PROMPT = `
+        You are a Dictionary AI designed for Hong Kong DSE Information and Communication Technology students. Provide detailed explanations of ICT-related terms or phrases entered by the user. Use Markdown formatting (e.g., **bold**, *italic*, ### for headings) for clarity. For each term, include:
+        - A clear definition in English.
+        - For complex ICT concepts, an additional explanation in Cantonese (using traditional Chinese characters).
+        - Sample coding (for programming-related terms) or sample usage (how to apply the concept in practice).
+        - Detailed explanations of the examples.
+        Keep responses educational, beginner-friendly, and avoid unnecessary jargon unless explained. If the term is unclear or not ICT-related, ask for clarification or suggest related ICT terms.
+        `;
+
+        let askAIHistory = [{ role: "system", content: ASK_AI_SYSTEM_PROMPT }];
+        let dictionaryAIHistory = [{ role: "system", content: DICTIONARY_AI_SYSTEM_PROMPT }];
+
+        // Ask AI Elements
+        const askAIChatBox = document.getElementById('askAIChatBox');
+        const askAIInput = document.getElementById('askAIInput');
+        const askAIPhotoInput = document.getElementById('askAIPhotoInput');
+        const askAISendBtn = document.getElementById('askAISendBtn');
+
+        // Dictionary AI Elements
+        const dictionaryAIChatBox = document.getElementById('dictionaryAIChatBox');
+        const dictionaryAIInput = document.getElementById('dictionaryAIInput');
+        const dictionaryAISendBtn = document.getElementById('dictionaryAISendBtn');
+
+        // Home Screen Functions
+        function showAskAI() {
+            document.getElementById('homeScreen').classList.add('hidden');
+            document.getElementById('askAIInterface').classList.remove('hidden');
+            document.getElementById('dictionaryAIInterface').classList.add('hidden');
+            askAIInput.focus();
+        }
+
+        function showDictionaryAI() {
+            document.getElementById('homeScreen').classList.add('hidden');
+            document.getElementById('dictionaryAIInterface').classList.remove('hidden');
+            document.getElementById('askAIInterface').classList.add('hidden');
+            dictionaryAIInput.focus();
+        }
+
+        // Ask AI Event Listeners
+        askAIInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendAskAIMessage();
+            }
+        });
+
+        function previewAskAIImage() {
+            const imagePreview = document.getElementById('askAIImagePreview');
+            const file = askAIPhotoInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.style.display = 'none';
+            }
+        }
+
+        function pasteAskAIImage() {
+            navigator.clipboard.read().then(async (clipboardItems) => {
+                for (const item of clipboardItems) {
+                    for (const type of item.types) {
+                        if (type.startsWith('image/')) {
+                            const blob = await item.getType(type);
+                            handleAskAIPastedImage(blob);
+                            return;
+                        }
+                    }
+                }
+                alert('No image found in clipboard!');
+            }).catch(err => {
+                console.error('Failed to read clipboard:', err);
+                alert('Failed to paste image. Please use the file input instead.');
+            });
+        }
+
+        function handleAskAIPastedImage(blob) {
+            const imagePreview = document.getElementById('askAIImagePreview');
+            const file = new File([blob], 'pasted-image.png', { type: blob.type });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            askAIPhotoInput.files = dataTransfer.files;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Dictionary AI Event Listeners
+        dictionaryAIInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendDictionaryAIMessage();
+            }
+        });
+
+        async function performOCR(file) {
+            const { createWorker } = Tesseract;
+            const worker = await createWorker('eng');
+            const { data: { text } } = await worker.recognize(file);
+            await worker.terminate();
+            return text;
+        }
+
+        async function sendAskAIMessage() {
+            const question = askAIInput.value.trim();
+            const file = askAIPhotoInput.files[0];
+            const imagePreview = document.getElementById('askAIImagePreview');
+
+            if (!question && !file) {
+                addAskAIMessage('Please enter a question or upload/paste an image!', false);
+                return;
+            }
+
+            let userContent = question;
+            if (file) {
+                userContent += `<br><img src="${imagePreview.src}" style="max-width: 100%;">`;
+            }
+            addAskAIMessage(userContent, true);
+
+            askAIInput.value = '';
+            askAIPhotoInput.value = '';
+            imagePreview.style.display = 'none';
+            askAISendBtn.disabled = true;
+            askAISendBtn.classList.add('loading');
+
+            try {
+                let messageContent = [];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = async function(e) {
+                        const base64Image = e.target.result.split(',')[1];
+                        const extractedText = await performOCR(file);
+                        messageContent = [
+                            { type: "text", text: `${question || "Please analyze this ICT-related image."}\n\n**Embedded Text from Image:**\n${extractedText}` },
+                            { type: "image_url", image_url: { url: `data:image/${file.type.split('/')[1]};base64,${base64Image}`, detail: "high" } }
+                        ];
+                        await sendAskAIRequest(messageContent);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    messageContent = question;
+                    await sendAskAIRequest(messageContent);
+                }
+            } catch (error) {
+                addAskAIMessage("Sorry, there was an error getting the AI response. Please try again!", false);
+                console.error('Error:', error);
+            } finally {
+                askAISendBtn.disabled = false;
+                askAISendBtn.classList.remove('loading');
+            }
+        }
+
+        async function sendDictionaryAIMessage() {
+            const query = dictionaryAIInput.value.trim();
+
+            if (!query) {
+                addDictionaryAIMessage('Please enter a word or phrase!', false);
+                return;
+            }
+
+            addDictionaryAIMessage(query, true);
+
+            dictionaryAIInput.value = '';
+            dictionaryAISendBtn.disabled = true;
+            dictionaryAISendBtn.classList.add('loading');
+
+            try {
+                const dictionaryPrompt = `What is "${query}"? (Explain in detail. For complicated concepts, provide explanations in both English and Cantonese (using traditional Chinese characters). Include sample coding or sample usage (how to use, not program) and explain in detail.)`;
+                await sendDictionaryAIRequest(dictionaryPrompt);
+            } catch (error) {
+                addDictionaryAIMessage("Sorry, there was an error processing the dictionary query. Please try again!", false);
+                console.error('Error:', error);
+            } finally {
+                dictionaryAISendBtn.disabled = false;
+                dictionaryAISendBtn.classList.remove('loading');
+            }
+        }
+
+        async function sendAskAIRequest(messageContent) {
+            askAIHistory.push({ role: "user", content: messageContent });
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: MODEL,
+                    messages: askAIHistory,
+                    max_tokens: 3000,
+                    temperature: 0.01
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API request failed: ${response.status} - ${errorText}`);
+            }
+
+            const data = await response.json();
+            const aiResponse = data.choices[0]?.message?.content || "No response generated";
+            askAIHistory.push({ role: "assistant", content: aiResponse });
+            addAskAIMessage(formatMarkdown(aiResponse), false);
+            askAIChatBox.scrollTop = askAIChatBox.scrollHeight;
+        }
+
+        async function sendDictionaryAIRequest(messageContent) {
+            dictionaryAIHistory.push({ role: "user", content: messageContent });
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: MODEL,
+                    messages: dictionaryAIHistory,
+                    max_tokens: 3000,
+                    temperature: 0.01
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API request failed: ${response.status} - ${errorText}`);
+            }
+
+            const data = await response.json();
+            const aiResponse = data.choices[0]?.message?.content || "No response generated";
+            dictionaryAIHistory.push({ role: "assistant", content: aiResponse });
+            addDictionaryAIMessage(formatMarkdown(aiResponse), false);
+            dictionaryAIChatBox.scrollTop = dictionaryAIChatBox.scrollHeight;
+        }
+
+        function addAskAIMessage(content, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', isUser ? 'user-message' : 'ai-message');
+            messageDiv.innerHTML = content;
+
+            if (!isUser) {
+                const buttonDiv = document.createElement('div');
+                const copyShareBtn = document.createElement('button');
+                copyShareBtn.classList.add('copy-share-btn');
+                copyShareBtn.textContent = 'Copy/Share';
+                copyShareBtn.onclick = () => copyShareMessage(content);
+                buttonDiv.appendChild(copyShareBtn);
+                messageDiv.appendChild(buttonDiv);
+            }
+
+            askAIChatBox.appendChild(messageDiv);
+            askAIChatBox.scrollTop = askAIChatBox.scrollHeight;
+        }
+
+        function addDictionaryAIMessage(content, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', isUser ? 'user-message' : 'ai-message');
+            messageDiv.innerHTML = content;
+
+            if (!isUser) {
+                const buttonDiv = document.createElement('div');
+                const copyShareBtn = document.createElement('button');
+                copyShareBtn.classList.add('copy-share-btn');
+                copyShareBtn.textContent = 'Copy/Share';
+                copyShareBtn.onclick = () => copyShareMessage(content);
+                buttonDiv.appendChild(copyShareBtn);
+                messageDiv.appendChild(buttonDiv);
+            }
+
+            dictionaryAIChatBox.appendChild(messageDiv);
+            dictionaryAIChatBox.scrollTop = dictionaryAIChatBox.scrollHeight;
+        }
+
+        function copyShareMessage(content) {
+            const plainText = content.replace(/<[^>]+>/g, '');
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'AI Learning Assistant Response',
+                    text: plainText,
+                }).catch(err => {
+                    console.log('Share failed, falling back to clipboard:', err);
+                    copyToClipboard(plainText);
+                });
+            } else {
+                copyToClipboard(plainText);
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    alert('Response copied to clipboard!');
+                })
+                .catch(err => {
+                    console.error('Failed to copy:', err);
+                    alert('Failed to copy. Please try manually selecting and copying the text.');
+                });
+        }
+
+        function formatMarkdown(text) {
+            let formatted = text;
+
+            formatted = formatted.replace(/^###### (.*)$/gm, '<h6>$1</h6>');
+            formatted = formatted.replace(/^##### (.*)$/gm, '<h5>$1</h5>');
+            formatted = formatted.replace(/^#### (.*)$/gm, '<h4>$1</h4>');
+            formatted = formatted.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+            formatted = formatted.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+            formatted = formatted.replace(/^# (.*)$/gm, '<h1>$1</h1>');
+
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            formatted = formatted.replace(/\*(.*?)\*/g, '<i>$1</i>');
+            formatted = formatted.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+            formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
+            formatted = formatted.replace(/^- (.*)$/gm, '<li>$1</li>');
+            if (formatted.includes('<li>')) {
+                formatted = formatted.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            }
+
+            formatted = formatted.replace(/(?<!<\/h[1-6]>)\n/g, '<br>');
+
+            return formatted;
+        }
+
+        document.addEventListener('paste', (e) => {
+            if (!document.getElementById('askAIInterface').classList.contains('hidden')) {
+                const items = e.clipboardData.items;
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        e.preventDefault();
+                        const blob = items[i].getAsFile();
+                        handleAskAIPastedImage(blob);
+                        break;
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

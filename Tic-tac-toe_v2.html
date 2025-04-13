@@ -6,92 +6,162 @@
     <title>Tic-Tac-Toe</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f0f0f0;
+            background-color: #e6f3ff;
+            margin: 0;
+            padding: 20px;
+            animation: fadeIn 1s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         h1 {
-            color: #333;
+            color: #1a3c6d;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
         }
         #game-mode {
             margin-bottom: 20px;
         }
         #board {
             display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-gap: 5px;
-            background-color: #333;
-            padding: 5px;
+            grid-template-columns: repeat(3, 120px);
+            grid-gap: 8px;
+            background-color: #1a3c6d;
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
         .cell {
-            width: 100px;
-            height: 100px;
-            background-color: white;
+            width: 120px;
+            height: 120px;
+            background-color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
+            font-size: 60px;
+            font-weight: bold;
+            color: #1a3c6d;
             cursor: pointer;
+            border-radius: 8px;
+            transition: transform 0.2s, background-color 0.2s;
         }
         .cell:hover {
-            background-color: #eee;
+            background-color: #f0f0f0;
+            transform: scale(1.05);
+        }
+        .cell.x {
+            color: #ff4d4d;
+            animation: popIn 0.3s ease;
+        }
+        .cell.o {
+            color: #4d94ff;
+            animation: popIn 0.3s ease;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .winning-cell {
+            background-color: #28a745 !important;
+            color: white !important;
+            animation: winPulse 0.5s infinite alternate;
+        }
+        @keyframes winPulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
         }
         #status {
-            margin-top: 20px;
-            font-size: 24px;
+            margin: 20px 0;
+            font-size: 28px;
+            color: #1a3c6d;
+            font-weight: 500;
+            text-align: center;
+        }
+        #score {
+            margin-bottom: 20px;
+            font-size: 20px;
             color: #333;
-        }
-        #reset {
-            margin[top: 10px;
+            background-color: #fff;
             padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        #reset:hover {
-            background-color: #0056b3;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
         button {
             margin: 5px;
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 12px 24px;
+            font-size: 18px;
             cursor: pointer;
-            background-color: #28a745;
+            background-color: #ff6f61;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
+            transition: background-color 0.2s, transform 0.2s;
         }
         button:hover {
-            background-color: #218838;
+            background-color: #e65b50;
+            transform: translateY(-2px);
+        }
+        #reset {
+            background-color: #007bff;
+        }
+        #reset:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
     <h1>Tic-Tac-Toe</h1>
+    <div id="score">
+        Score - X: <span id="score-x">0</span> | O: <span id="score-o">0</span> | Ties: <span id="score-ties">0</span>
+    </div>
     <div id="game-mode">
         <button onclick="startGame('friends')">Play with Friends</button>
         <button onclick="startGame('ai')">Play with AI</button>
     </div>
     <div id="board"></div>
     <div id="status">Select a mode to start</div>
-    <button id="reset" onclick="resetGame()" style="display: none;">Reset Game</button>
+    <button id="reset" onclick="resetGame()">Reset Game</button>
 
     <script>
         let currentPlayer = 'X';
         let board = ['', '', '', '', '', '', '', '', ''];
         let gameActive = false;
         let gameMode = null;
+        let scores = { x: 0, o: 0, ties: 0 };
 
         const winCombos = [
             [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
             [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
             [0, 4, 8], [2, 4, 6] // Diagonals
         ];
+
+        // Load scores from localStorage
+        function loadScores() {
+            const saved = localStorage.getItem('tictactoe-scores');
+            if (saved) {
+                scores = JSON.parse(saved);
+            }
+            updateScoreDisplay();
+        }
+
+        // Save scores to localStorage
+        function saveScores() {
+            localStorage.setItem('tictactoe-scores', JSON.stringify(scores));
+            updateScoreDisplay();
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('score-x').textContent = scores.x;
+            document.getElementById('score-o').textContent = scores.o;
+            document.getElementById('score-ties').textContent = scores.ties;
+        }
 
         function startGame(mode) {
             gameMode = mode;
@@ -100,6 +170,7 @@
             board = ['', '', '', '', '', '', '', '', ''];
             document.getElementById('status').textContent = `Player ${currentPlayer}'s turn`;
             document.getElementById('reset').style.display = 'block';
+            loadScores();
             renderBoard();
         }
 
@@ -109,6 +180,7 @@
             board.forEach((cell, index) => {
                 const cellDiv = document.createElement('div');
                 cellDiv.classList.add('cell');
+                if (cell) cellDiv.classList.add(cell.toLowerCase());
                 cellDiv.textContent = cell;
                 cellDiv.addEventListener('click', () => handleCellClick(index));
                 boardDiv.appendChild(cellDiv);
@@ -120,13 +192,18 @@
 
             board[index] = currentPlayer;
             renderBoard();
-            if (checkWin()) {
+            const result = checkWin();
+            if (result) {
+                highlightWinningCells(result.combo);
                 document.getElementById('status').textContent = `Player ${currentPlayer} wins!`;
+                updateScores(currentPlayer);
                 gameActive = false;
                 return;
             }
             if (board.every(cell => cell !== '')) {
                 document.getElementById('status').textContent = "It's a tie!";
+                scores.ties++;
+                saveScores();
                 gameActive = false;
                 return;
             }
@@ -135,23 +212,90 @@
             document.getElementById('status').textContent = `Player ${currentPlayer}'s turn`;
 
             if (gameMode === 'ai' && gameActive && currentPlayer === 'O') {
-                setTimeout(makeAIMove, 500); // Slight delay for UX
+                setTimeout(() => {
+                    const bestMove = findBestMove();
+                    handleCellClick(bestMove);
+                }, 600); // Delay for UX
             }
         }
 
         function checkWin() {
-            return winCombos.some(combo => {
-                return combo.every(index => board[index] === currentPlayer);
+            for (let combo of winCombos) {
+                if (combo.every(index => board[index] === currentPlayer)) {
+                    return { combo };
+                }
+            }
+            return null;
+        }
+
+        function highlightWinningCells(combo) {
+            combo.forEach(index => {
+                document.getElementById('board').children[index].classList.add('winning-cell');
             });
         }
 
-        function makeAIMove() {
-            const emptyCells = board
-                .map((cell, index) => (cell === '' ? index : null))
-                .filter(index => index !== null);
-            if (emptyCells.length === 0) return;
-            const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            handleCellClick(randomIndex);
+        function updateScores(winner) {
+            if (winner === 'X') scores.x++;
+            else if (winner === 'O') scores.o++;
+            saveScores();
+        }
+
+        // AI: Minimax Algorithm
+        function findBestMove() {
+            let bestScore = -Infinity;
+            let bestMove;
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === '') {
+                    board[i] = 'O';
+                    let score = minimax(board, 0, false);
+                    board[i] = '';
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMove = i;
+                    }
+                }
+            }
+            return bestMove;
+        }
+
+        function minimax(board, depth, isMaximizing) {
+            let result = evaluateBoard();
+            if (result !== null) {
+                return result;
+            }
+
+            if (isMaximizing) {
+                let bestScore = -Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (board[i] === '') {
+                        board[i] = 'O';
+                        let score = minimax(board, depth + 1, false);
+                        board[i] = '';
+                        bestScore = Math.max(score, bestScore);
+                    }
+                }
+                return bestScore;
+            } else {
+                let bestScore = Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (board[i] === '') {
+                        board[i] = 'X';
+                        let score = minimax(board, depth + 1, true);
+                        board[i] = '';
+                        bestScore = Math.min(score, bestScore);
+                    }
+                }
+                return bestScore;
+            }
+        }
+
+        function evaluateBoard() {
+            for (let combo of winCombos) {
+                if (combo.every(index => board[index] === 'O')) return 10;
+                if (combo.every(index => board[index] === 'X')) return -10;
+            }
+            if (board.every(cell => cell !== '')) return 0;
+            return null;
         }
 
         function resetGame() {
@@ -161,7 +305,10 @@
             gameMode = null;
             document.getElementById('status').textContent = 'Select a mode to start';
             document.getElementById('board').innerHTML = '';
-            document.getElementById('reset').style.display = 'none';
+            document.getElementById('board').style.animation = 'fadeOut 0.3s';
+            setTimeout(() => {
+                document.getElementById('board').style.animation = '';
+            }, 300);
         }
     </script>
 </body>

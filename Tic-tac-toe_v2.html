@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #333;
+        }
+        #game-mode {
+            margin-bottom: 20px;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 5px;
+            background-color: #333;
+            padding: 5px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            cursor: pointer;
+        }
+        .cell:hover {
+            background-color: #eee;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+        #reset {
+            margin[top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        #reset:hover {
+            background-color: #0056b3;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tic-Tac-Toe</h1>
+    <div id="game-mode">
+        <button onclick="startGame('friends')">Play with Friends</button>
+        <button onclick="startGame('ai')">Play with AI</button>
+    </div>
+    <div id="board"></div>
+    <div id="status">Select a mode to start</div>
+    <button id="reset" onclick="resetGame()" style="display: none;">Reset Game</button>
+
+    <script>
+        let currentPlayer = 'X';
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = false;
+        let gameMode = null;
+
+        const winCombos = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+            [0, 4, 8], [2, 4, 6] // Diagonals
+        ];
+
+        function startGame(mode) {
+            gameMode = mode;
+            gameActive = true;
+            currentPlayer = 'X';
+            board = ['', '', '', '', '', '', '', '', ''];
+            document.getElementById('status').textContent = `Player ${currentPlayer}'s turn`;
+            document.getElementById('reset').style.display = 'block';
+            renderBoard();
+        }
+
+        function renderBoard() {
+            const boardDiv = document.getElementById('board');
+            boardDiv.innerHTML = '';
+            board.forEach((cell, index) => {
+                const cellDiv = document.createElement('div');
+                cellDiv.classList.add('cell');
+                cellDiv.textContent = cell;
+                cellDiv.addEventListener('click', () => handleCellClick(index));
+                boardDiv.appendChild(cellDiv);
+            });
+        }
+
+        function handleCellClick(index) {
+            if (!gameActive || board[index] !== '') return;
+
+            board[index] = currentPlayer;
+            renderBoard();
+            if (checkWin()) {
+                document.getElementById('status').textContent = `Player ${currentPlayer} wins!`;
+                gameActive = false;
+                return;
+            }
+            if (board.every(cell => cell !== '')) {
+                document.getElementById('status').textContent = "It's a tie!";
+                gameActive = false;
+                return;
+            }
+
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            document.getElementById('status').textContent = `Player ${currentPlayer}'s turn`;
+
+            if (gameMode === 'ai' && gameActive && currentPlayer === 'O') {
+                setTimeout(makeAIMove, 500); // Slight delay for UX
+            }
+        }
+
+        function checkWin() {
+            return winCombos.some(combo => {
+                return combo.every(index => board[index] === currentPlayer);
+            });
+        }
+
+        function makeAIMove() {
+            const emptyCells = board
+                .map((cell, index) => (cell === '' ? index : null))
+                .filter(index => index !== null);
+            if (emptyCells.length === 0) return;
+            const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            handleCellClick(randomIndex);
+        }
+
+        function resetGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            gameActive = false;
+            gameMode = null;
+            document.getElementById('status').textContent = 'Select a mode to start';
+            document.getElementById('board').innerHTML = '';
+            document.getElementById('reset').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

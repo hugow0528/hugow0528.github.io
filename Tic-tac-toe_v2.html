@@ -64,6 +64,7 @@
             border-radius: 12px;
             width: min(90vw, 400px);
             aspect-ratio: 1;
+            display: none; /* Hidden initially */
         }
         .cell {
             background-color: #ffffff;
@@ -95,6 +96,24 @@
             80% { transform: scale(1.15); }
             100% { transform: scale(1); }
         }
+        .cell.winning {
+            animation: winGlow 1s ease-in-out infinite;
+        }
+        @keyframes winGlow {
+            0% {
+                background-color: #ffffff;
+                box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+            }
+            50% {
+                background-color: #28a745;
+                color: white;
+                box-shadow: 0 0 20px rgba(40, 167, 69, 1);
+            }
+            100% {
+                background-color: #ffffff;
+                box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+            }
+        }
         #status {
             margin: 1.5rem 0;
             font-size: clamp(1.2rem, 4vw, 1.6rem);
@@ -121,6 +140,7 @@
         }
         #reset {
             background-color: #007bff;
+            display: none; /* Hidden initially */
         }
         #reset:hover {
             background-color: #0056b3;
@@ -195,6 +215,7 @@
             currentPlayer = 'X';
             board = ['', '', '', '', '', '', '', '', ''];
             document.getElementById('status').textContent = `Player ${currentPlayer}'s turn`;
+            document.getElementById('board').style.display = 'grid';
             document.getElementById('reset').style.display = 'block';
             loadScores();
             renderBoard();
@@ -223,6 +244,7 @@
 
             const result = checkWin();
             if (result) {
+                highlightWinningCells(result.combo);
                 document.getElementById('status').textContent = `Player ${currentPlayer} wins!`;
                 updateScores(currentPlayer);
                 gameActive = false;
@@ -254,6 +276,14 @@
                 }
             }
             return null;
+        }
+
+        function highlightWinningCells(combo) {
+            combo.forEach(index => {
+                const cell = document.getElementById('board').children[index];
+                cell.classList.add('winning');
+                cell.classList.remove('clicked'); // Ensure popIn doesn't interfere
+            });
         }
 
         function updateScores(winner) {
@@ -326,7 +356,9 @@
             gameActive = false;
             gameMode = null;
             document.getElementById('status').textContent = 'Select a mode to start';
+            document.getElementById('board').style.display = 'none';
             document.getElementById('board').innerHTML = '';
+            document.getElementById('reset').style.display = 'none';
         }
     </script>
 </body>

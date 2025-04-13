@@ -5,98 +5,106 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic-Tac-Toe</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             background-color: #e6f3ff;
-            margin: 0;
-            padding: 20px;
-            animation: fadeIn 1s ease-in;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            min-height: 100vh;
+            padding: 1rem;
         }
         h1 {
             color: #1a3c6d;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            font-size: clamp(1.8rem, 6vw, 2.5rem);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        #score {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: min(90vw, 400px);
+            background: linear-gradient(135deg, #ffffff, #d9eaff);
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 1.5rem;
+            font-size: clamp(1rem, 3.5vw, 1.2rem);
+            color: #1a3c6d;
+            font-weight: 600;
+        }
+        #score span {
+            background-color: #1a3c6d;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 8px;
+            min-width: 2.5rem;
+            text-align: center;
         }
         #game-mode {
-            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
         }
         #board {
             display: grid;
-            grid-template-columns: repeat(3, 120px);
-            grid-gap: 8px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(5px, 1vw, 8px);
             background-color: #1a3c6d;
-            padding: 8px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            padding: clamp(5px, 1vw, 8px);
+            border-radius: 12px;
+            width: min(90vw, 400px);
+            aspect-ratio: 1;
         }
         .cell {
-            width: 120px;
-            height: 120px;
             background-color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 60px;
+            font-size: clamp(2rem, 10vw, 3.5rem);
             font-weight: bold;
             color: #1a3c6d;
             cursor: pointer;
             border-radius: 8px;
-            transition: transform 0.2s, background-color 0.2s;
+            transition: background-color 0.2s;
+            aspect-ratio: 1;
         }
         .cell:hover {
             background-color: #f0f0f0;
-            transform: scale(1.05);
         }
         .cell.x {
             color: #ff4d4d;
-            animation: popIn 0.3s ease;
         }
         .cell.o {
             color: #4d94ff;
+        }
+        .cell.clicked {
             animation: popIn 0.3s ease;
         }
         @keyframes popIn {
             0% { transform: scale(0); }
-            80% { transform: scale(1.2); }
+            80% { transform: scale(1.15); }
             100% { transform: scale(1); }
         }
-        .winning-cell {
-            background-color: #28a745 !important;
-            color: white !important;
-            animation: winPulse 0.5s infinite alternate;
-        }
-        @keyframes winPulse {
-            from { transform: scale(1); }
-            to { transform: scale(1.1); }
-        }
         #status {
-            margin: 20px 0;
-            font-size: 28px;
+            margin: 1.5rem 0;
+            font-size: clamp(1.2rem, 4vw, 1.6rem);
             color: #1a3c6d;
             font-weight: 500;
             text-align: center;
         }
-        #score {
-            margin-bottom: 20px;
-            font-size: 20px;
-            color: #333;
-            background-color: #fff;
-            padding: 10px 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
         button {
-            margin: 5px;
-            padding: 12px 24px;
-            font-size: 18px;
+            padding: 0.6rem 1.2rem;
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
             cursor: pointer;
             background-color: #ff6f61;
             color: white;
@@ -108,18 +116,36 @@
             background-color: #e65b50;
             transform: translateY(-2px);
         }
+        button:active {
+            transform: translateY(0);
+        }
         #reset {
             background-color: #007bff;
         }
         #reset:hover {
             background-color: #0056b3;
         }
+        @media (max-width: 400px) {
+            #score {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            #game-mode {
+                flex-direction: column;
+                align-items: center;
+            }
+            button {
+                width: min(80vw, 200px);
+            }
+        }
     </style>
 </head>
 <body>
     <h1>Tic-Tac-Toe</h1>
     <div id="score">
-        Score - X: <span id="score-x">0</span> | O: <span id="score-o">0</span> | Ties: <span id="score-ties">0</span>
+        <div>X: <span id="score-x">0</span></div>
+        <div>O: <span id="score-o">0</span></div>
+        <div>Ties: <span id="score-ties">0</span></div>
     </div>
     <div id="game-mode">
         <button onclick="startGame('friends')">Play with Friends</button>
@@ -191,10 +217,12 @@
             if (!gameActive || board[index] !== '') return;
 
             board[index] = currentPlayer;
-            renderBoard();
+            const clickedCell = document.getElementById('board').children[index];
+            clickedCell.classList.add('clicked', currentPlayer.toLowerCase());
+            clickedCell.textContent = currentPlayer;
+
             const result = checkWin();
             if (result) {
-                highlightWinningCells(result.combo);
                 document.getElementById('status').textContent = `Player ${currentPlayer} wins!`;
                 updateScores(currentPlayer);
                 gameActive = false;
@@ -226,12 +254,6 @@
                 }
             }
             return null;
-        }
-
-        function highlightWinningCells(combo) {
-            combo.forEach(index => {
-                document.getElementById('board').children[index].classList.add('winning-cell');
-            });
         }
 
         function updateScores(winner) {
@@ -305,10 +327,6 @@
             gameMode = null;
             document.getElementById('status').textContent = 'Select a mode to start';
             document.getElementById('board').innerHTML = '';
-            document.getElementById('board').style.animation = 'fadeOut 0.3s';
-            setTimeout(() => {
-                document.getElementById('board').style.animation = '';
-            }, 300);
         }
     </script>
 </body>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player with Timer and Playback Modes</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #1e1e2f, #2e2e4f);
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+        }
+
+        #music-player {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            width: 350px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .logo {
+            width: 100px;
+            margin: 0 auto 15px;
+            display: block;
+        }
+
+        .album-art {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: url('https://via.placeholder.com/150') center/cover;
+            margin: 0 auto 20px;
+            animation: rotate 10s linear infinite;
+            animation-play-state: paused;
+        }
+
+        .album-art.playing {
+            animation-play-state: running;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .track-info {
+            margin-bottom: 20px;
+        }
+
+        .track-info h2 {
+            font-size: 1.2em;
+            margin: 0;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .controls select, .controls input, .controls button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .controls select:focus, .controls input:focus, .controls button:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: #6200ea;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s, background 0.3s;
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+            background: #7f39fb;
+        }
+
+        .btn svg {
+            fill: #fff;
+            width: 24px;
+            height: 24px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        .progress {
+            width: 0;
+            height: 100%;
+            background: #6200ea;
+            transition: width 0.1s linear;
+        }
+
+        .time {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            margin-bottom: 10px;
+        }
+
+        .volume-container, .timer-container, .mode-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .timer-container input {
+            width: 60px;
+        }
+
+        .timer-container button {
+            width: auto;
+            padding: 5px 10px;
+            font-size: 0.9em;
+        }
+
+        .timer-container span {
+            font-size: 0.9em;
+            width: 50px;
+            text-align: center;
+        }
+
+        .mode-container select {
+            width: auto;
+        }
+
+        @media (max-width: 400px) {
+            #music-player {
+                width: 90%;
+                padding: 15px;
+            }
+
+            .album-art {
+                width: 120px;
+                height: 120px;
+            }
+
+            .logo {
+                width: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="music-player">
+         <img src="https://hugo_wong.pyscriptapps.com/music-player/latest/logo.jpg" alt="AI Platform Logo" style="margin-bottom: 15px; border-radius: 10px; max-width: 90px;">
+        
+        <div class="track-info">
+            <h2 id="track-name">Select a track</h2>
+        </div>
+        <div class="controls">
+            <select id="music-select">
+                <option value="">選擇音樂</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/Battle-Abysswalker.mp3">The Abysswalker</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/Battle-Rosemoon.mp3">死せる都の戰乙女</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/Battle-deadly.mp3">五大罪</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/Battle-rapier.mp3">繼承劍的少女</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/Ariadne-Battle.mp3">不屈意志之刃</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/battle-arms.mp3">西部戰鬥</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/Battle.mp3">Battle Theme</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/Wanderers-City.mp3">流浪城鎮</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/Remotest-Liblary.mp3">沉睡的記憶</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/Nostalgia.mp3">麥田懷舊</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/sunbeams.mp3">放學後</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/village.mp3">鄉村生活</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/Take-a-Rest.mp3">休息一下</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/winter-snow.mp3">雪鄉</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/Forgotten-Place.mp3">被遺忘的地方</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/Rest-in-Peace.mp3">安息</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/Farewell.mp3">告別</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/reminiscence.mp3">回憶</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/starry-night.mp3">星夜</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/last-wish.mp3">當思念傳到某人耳畔</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/sorrow.mp3">超越悲傷</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/hotarumichi.mp3">螢火蟲之路</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/Sky-Airship.mp3">飛艇</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/Voyage_SE.mp3">跨越神秘之海</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/main-theme01.mp3">盼望</option>
+                <option value="https://youfulca.com/wp-content/uploads/2022/08/saikai637.mp3">約定之地</option>
+            </select>
+            <div class="mode-container">
+                <select id="playback-mode">
+                    <option value="auto-next">Auto Next</option>
+                    <option value="single-loop">Single Loop</option>
+                    <option value="play-once">Play Once</option>
+                </select>
+            </div>
+            <div class="time">
+                <span id="current-time">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+            <div class="progress-container" id="progress-container">
+                <div class="progress" id="progress"></div>
+            </div>
+            <div class="buttons">
+                <button class="btn" id="prev-btn" title="Previous">
+                    <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"></path></svg>
+                </button>
+                <button class="btn" id="play-pause" title="Play">
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+                </button>
+                <button class="btn" id="next-btn" title="Next">
+                    <svg viewBox="0 0 24 24"><path d="M18 6h-2v12h2zm-3.5 6l-8.5 6V6z"></path></svg>
+                </button>
+            </div>
+            <div class="volume-container">
+                <svg viewBox="0 0 24 24" width="20"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-3.99-7.86-7-8.77z"></path></svg>
+                <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
+            </div>
+            <div class="timer-container">
+                <input type="number" id="timer-input" min="1" placeholder="Timer (min)">
+                <span id="timer-remaining">--:--</span>
+                <button id="set-timer">Set</button>
+                <button id="cancel-timer">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const audio = new Audio();
+        const musicSelect = document.getElementById('music-select');
+        const playPauseBtn = document.getElementById('play-pause');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progressContainer = document.getElementById('progress-container');
+        const progress = document.getElementById('progress');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
+        const volume = document.getElementById('volume');
+        const trackName = document.getElementById('track-name');
+        const albumArt = document.querySelector('.album-art');
+        const playbackMode = document.getElementById('playback-mode');
+        const timerInput = document.getElementById('timer-input');
+        const setTimerBtn = document.getElementById('set-timer');
+        const cancelTimerBtn = document.getElementById('cancel-timer');
+        const timerRemainingEl = document.getElementById('timer-remaining');
+
+        let isPlaying = false;
+        let timerInterval = null;
+        let timerEndTime = null;
+
+        // Load track
+        musicSelect.addEventListener('change', () => {
+            audio.src = musicSelect.value;
+            trackName.textContent = musicSelect.options[musicSelect.selectedIndex].text;
+            if (audio.src) {
+                audio.play();
+                isPlaying = true;
+                updatePlayPauseBtn();
+                albumArt.classList.add('playing');
+            }
+        });
+
+        // Play/Pause
+        playPauseBtn.addEventListener('click', () => {
+            if (!audio.src) return;
+            isPlaying = !isPlaying;
+            if (isPlaying) {
+                audio.play();
+                albumArt.classList.add('playing');
+            } else {
+                audio.pause();
+                albumArt.classList.remove('playing');
+            }
+            updatePlayPauseBtn();
+        });
+
+        // Previous Track
+        prevBtn.addEventListener('click', () => {
+            let index = musicSelect.selectedIndex - 1;
+            if (index < 1) index = musicSelect.options.length - 1;
+            musicSelect.selectedIndex = index;
+            musicSelect.dispatchEvent(new Event('change'));
+        });
+
+        // Next Track
+        nextBtn.addEventListener('click', () => {
+            let index = musicSelect.selectedIndex + 1;
+            if (index >= musicSelect.options.length) index = 1;
+            musicSelect.selectedIndex = index;
+            musicSelect.dispatchEvent(new Event('change'));
+        });
+
+        // Progress Update
+        audio.addEventListener('timeupdate', () => {
+            const currentTime = audio.currentTime;
+            const duration = audio.duration;
+            const progressPercent = (currentTime / duration) * 100;
+            progress.style.width = `${progressPercent}%`;
+            currentTimeEl.textContent = formatTime(currentTime);
+            durationEl.textContent = formatTime(duration);
+        });
+
+        // Handle Track End
+        audio.addEventListener('ended', () => {
+            isPlaying = false;
+            updatePlayPauseBtn();
+            albumArt.classList.remove('playing');
+            const mode = playbackMode.value;
+            if (mode === 'single-loop') {
+                audio.currentTime = 0;
+                audio.play();
+                isPlaying = true;
+                updatePlayPauseBtn();
+                albumArt.classList.add('playing');
+            } else if (mode === 'auto-next') {
+                nextBtn.click();
+            }
+            // For 'play-once', do nothing (music stops)
+        });
+
+        // Progress Bar Click
+        progressContainer.addEventListener('click', (e) => {
+            const width = progressContainer.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audio.duration;
+            audio.currentTime = (clickX / width) * duration;
+        });
+
+        // Volume Control
+        volume.addEventListener('input', () => {
+            audio.volume = volume.value;
+        });
+
+        // Timer Setup
+        setTimerBtn.addEventListener('click', () => {
+            const minutes = parseInt(timerInput.value);
+            if (minutes > 0) {
+                const now = new Date();
+                timerEndTime = now.getTime() + minutes * 60 * 1000;
+                clearInterval(timerInterval);
+                timerInterval = setInterval(updateTimer, 1000);
+                updateTimer();
+            }
+        });
+
+        // Cancel Timer
+        cancelTimerBtn.addEventListener('click', () => {
+            clearInterval(timerInterval);
+            timerEndTime = null;
+            timerRemainingEl.textContent = '--:--';
+            timerInput.value = '';
+        });
+
+        // Update Timer Display
+        function updateTimer() {
+            if (!timerEndTime) return;
+            const now = new Date().getTime();
+            const remaining = Math.max(0, timerEndTime - now);
+            const minutes = Math.floor(remaining / 1000 / 60);
+            const seconds = Math.floor((remaining / 1000) % 60);
+            timerRemainingEl.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            if (remaining <= 0) {
+                audio.pause();
+                isPlaying = false;
+                updatePlayPauseBtn();
+                albumArt.classList.remove('playing');
+                clearInterval(timerInterval);
+                timerEndTime = null;
+                timerRemainingEl.textContent = '--:--';
+                timerInput.value = '';
+            }
+        }
+
+        // Update Play/Pause Button
+        function updatePlayPauseBtn() {
+            playPauseBtn.innerHTML = isPlaying
+                ? `<svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"></path></svg>`
+                : `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>`;
+        }
+
+        // Format Time
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            seconds = Math.floor(seconds % 60);
+            return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+    </script>
+</body>
+</html>

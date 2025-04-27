@@ -182,7 +182,7 @@
 <body>
     <div id="music-player">
          <img src="https://hugo_wong.pyscriptapps.com/music-player/latest/logo.jpg" alt="AI Platform Logo" style="margin-bottom: 15px; border-radius: 10px; max-width: 90px;">
-        
+        <div class="album-art"></div>
         <div class="track-info">
             <h2 id="track-name">Select a track</h2>
         </div>
@@ -279,13 +279,22 @@
 
         // Load track
         musicSelect.addEventListener('change', () => {
-            audio.src = musicSelect.value;
-            trackName.textContent = musicSelect.options[musicSelect.selectedIndex].text;
-            if (audio.src) {
-                audio.play();
-                isPlaying = true;
+            if (musicSelect.value) {
+                audio.src = musicSelect.value;
+                trackName.textContent = musicSelect.options[musicSelect.selectedIndex].text;
+                audio.play().then(() => {
+                    isPlaying = true;
+                    updatePlayPauseBtn();
+                    albumArt.classList.add('playing');
+                }).catch(error => {
+                    console.error('Error playing audio:', error);
+                });
+            } else {
+                audio.src = '';
+                trackName.textContent = 'Select a track';
+                isPlaying = false;
                 updatePlayPauseBtn();
-                albumArt.classList.add('playing');
+                albumArt.classList.remove('playing');
             }
         });
 
@@ -294,8 +303,12 @@
             if (!audio.src) return;
             isPlaying = !isPlaying;
             if (isPlaying) {
-                audio.play();
-                albumArt.classList.add('playing');
+                audio.play().then(() => {
+                    albumArt.classList.add('playing');
+                }).catch(error => {
+                    console.error('Error playing audio:', error);
+                    isPlaying = false;
+                });
             } else {
                 audio.pause();
                 albumArt.classList.remove('playing');
@@ -322,7 +335,7 @@
         // Progress Update
         audio.addEventListener('timeupdate', () => {
             const currentTime = audio.currentTime;
-            const duration = audio.duration;
+            const duration = audio.duration || 0;
             const progressPercent = (currentTime / duration) * 100;
             progress.style.width = `${progressPercent}%`;
             currentTimeEl.textContent = formatTime(currentTime);
@@ -331,27 +344,31 @@
 
         // Handle Track End
         audio.addEventListener('ended', () => {
-            isPlaying = false;
-            updatePlayPauseBtn();
-            albumArt.classList.remove('playing');
             const mode = playbackMode.value;
             if (mode === 'single-loop') {
                 audio.currentTime = 0;
-                audio.play();
-                isPlaying = true;
-                updatePlayPauseBtn();
-                albumArt.classList.add('playing');
+                audio.play().then(() => {
+                    isPlaying = true;
+                    updatePlayPauseBtn();
+                    albumArt.classList.add('playing');
+                }).catch(error => {
+                    console.error('Error looping audio:', error);
+                });
             } else if (mode === 'auto-next') {
                 nextBtn.click();
+            } else {
+                // For 'play-once', stop playback
+                isPlaying = false;
+                updatePlayPauseBtn();
+                albumArt.classList.remove('playing');
             }
-            // For 'play-once', do nothing (music stops)
         });
 
         // Progress Bar Click
         progressContainer.addEventListener('click', (e) => {
             const width = progressContainer.clientWidth;
             const clickX = e.offsetX;
-            const duration = audio.duration;
+            const duration = audio.duration || 0;
             audio.currentTime = (clickX / width) * duration;
         });
 

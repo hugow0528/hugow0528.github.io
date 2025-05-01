@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAI the AI VTuber</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0e7ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            width: 800px;
+            height: 600px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        .avatar-section {
+            flex: 1;
+            background: #ffe6f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .avatar-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        .chat-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .chat-box {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            margin-bottom: 10px;
+        }
+        .chat-box p {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .chat-box .user {
+            background: #d1e7ff;
+            text-align: right;
+        }
+        .chat-box .kai {
+            background: #ffe6f0;
+            text-align: left;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #ff8787;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="avatar-section">
+            <canvas id="vrmCanvas" class="avatar-canvas"></canvas>
+        </div>
+        <div class="chat-section">
+            <div class="chat-box" id="chatBox"></div>
+            <div class="input-area">
+                <input type="text" id="userInput" placeholder="Chat with KAI..." autocomplete="off">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.0.0/lib/three-vrm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/controls/OrbitControls.js"></script>
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        const userInput = document.getElementById('userInput');
+        let vrm, mixer;
+
+        // Initialize Three.js and VRM
+        function initVRM() {
+            const canvas = document.getElementById('vrmCanvas');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(30, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
+            camera.position.set(0, 1.5, 3);
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            // Lighting
+            const light = new THREE.DirectionalLight(0xffffff, 0.6);
+            light.position.set(1, 1, 1).normalize();
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0x404040));
+
+            // Load VRM
+            const loader = new THREE.VRMLoader();
+            loader.load(
+                'https://cdn.jsdelivr.net/gh/YOUR_USERNAME/kai-vtuber@kai_avatar/kai.vrm', // Replace with your VRM URL
+                (vrmModel) => {
+                    vrm = vrmModel;
+                    scene.add(vrm.scene);
+                    vrm.scene.rotation.y = Math.PI; // Face forward
+
+                    // Basic idle animation (breathing)
+                    mixer = new THREE.AnimationMixer(vrm.scene);
+                    const clip = THREE.AnimationClipCreator.CreateSinusoidalAnimation(
+                        [{ property: 'position.y', start: 0, end: 0.02 }],
+                        2 // 2-second loop
+                    );
+                    const action = mixer.clipAction(clip);
+                    action.play();
+                },
+                (progress) => console.log('Loading VRM:', progress.loaded / progress.total * 100 + '%'),
+                (error) => console.error('VRM Load Error:', error)
+            );
+
+            // Animation loop
+            const clock = new THREE.Clock();
+            function animate() {
+                requestAnimationFrame(animate);
+                if (mixer) mixer.update(clock.getDelta());
+                if (vrm) vrm.update(clock.getDelta()); // Update VRM blendshapes
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            });
+        }
+
+        // Load chat history from localStorage
+        function loadChatHistory() {
+            const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+            history.forEach(({ role, content }) => {
+                addMessageToChat(role, content);
+            });
+        }
+
+        // Save message to localStorage
+        function saveMessage(role, content) {
+            const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+            history.push({ role, content });
+            localStorage.setItem('chatHistory', JSON.stringify(history));
+        }
+
+        // Add message to chat box
+        function addMessageToChat(role, content) {
+            const message = document.createElement('p');
+            message.className = role === 'user' ? 'user' : 'kai';
+            message.textContent = `${role === 'user' ? 'You' : 'KAI'}: ${content}`;
+            chatBox.appendChild(message);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Text-to-Speech with lip-sync
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.2;
+            utterance.pitch = 1.3;
+            utterance.volume = 0.9;
+            utterance.onstart = () => {
+                // Open mouth using blendshape
+                if (vrm && vrm.blendShapeProxy) {
+                    vrm.blendShapeProxy.setValue('A', 0.8); // Mouth open (VRoid VRMs typically have 'A')
+                }
+            };
+            utterance.onend = () => {
+                if (vrm && vrm.blendShapeProxy) {
+                    vrm.blendShapeProxy.setValue('A', 0); // Mouth closed
+                }
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Call Grok API
+        async function callApi(userInput) {
+            const url = 'https://api.x.ai/v1/chat/completions';
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer xai-DSALjuMe7HTwfBE9Uz2N0guUlQdJ0IlnwZNzvxbr1WEAfVKyBy4LNIiKZXE9fN2i3dZo6COat6xFm5z4'
+            };
+            const data = {
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are KAI, a cheerful, energetic AI VTuber with an anime-style persona. You love gaming, chatting with fans, and making jokes. Respond in a friendly, casual tone with occasional anime-style expressions (e.g., "Nya~", "Ehe!"). Avoid technical jargon unless asked.'
+                    },
+                    { role: 'user', content: userInput }
+                ],
+                model: 'grok-2-latest',
+                stream: false,
+                temperature: 0.7
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.choices && result.choices[0]) {
+                    return result.choices[0].message.content;
+                }
+                return 'Oh no, my circuits are fritzing! Try again, nya~';
+            } catch (error) {
+                console.error('API Error:', error);
+                return 'Ehe, something broke! Gimme a sec, nya~';
+            }
+        }
+
+        // Handle sending message
+        async function sendMessage() {
+            const input = userInput.value.trim();
+            if (!input) return;
+
+            // Add user message
+            addMessageToChat('user', input);
+            saveMessage('user', input);
+            userInput.value = '';
+
+            // Get and display AI response
+            const aiResponse = await callApi(input);
+            addMessageToChat('kai', aiResponse);
+            saveMessage('kai', aiResponse);
+
+            // Speak AI response with lip-sync
+            speak(aiResponse);
+        }
+
+        // Handle Enter key
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') send',
+            sendMessage();
+        });
+
+        // Initialize on page load
+        initVRM();
+        loadChatHistory();
+    </script>
+</body>
+</html>

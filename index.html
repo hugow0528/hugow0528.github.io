@@ -32,9 +32,10 @@
             align-items: center;
             padding: 20px;
         }
-        .avatar-canvas {
-            width: 100%;
-            height: 100%;
+        .avatar-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
         .chat-section {
             flex: 2;
@@ -92,7 +93,7 @@
 <body>
     <div class="container">
         <div class="avatar-section">
-            <canvas id="vrmCanvas" class="avatar-canvas"></canvas>
+            <img id="avatar" src="https://cdn.jsdelivr.net/gh/hugow0528/kai-vtuber@kai_avatar/kai_closed.png" class="avatar-img">
         </div>
         <div class="chat-section">
             <div class="chat-box" id="chatBox"></div>
@@ -103,70 +104,10 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.0.0/lib/three-vrm.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/controls/OrbitControls.js"></script>
     <script>
         const chatBox = document.getElementById('chatBox');
         const userInput = document.getElementById('userInput');
-        let vrm, mixer;
-
-        // Initialize Three.js and VRM
-        function initVRM() {
-            const canvas = document.getElementById('vrmCanvas');
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(30, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
-            camera.position.set(0, 1.5, 3);
-            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
-            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-
-            // Lighting
-            const light = new THREE.DirectionalLight(0xffffff, 0.6);
-            light.position.set(1, 1, 1).normalize();
-            scene.add(light);
-            scene.add(new THREE.AmbientLight(0x404040));
-
-            // Load VRM
-            const loader = new THREE.VRMLoader();
-            loader.load(
-                'https://github.com/hugow0528/hugow0528.github.io/blob/main/kai.vrm',
-              //  'https://cdn.jsdelivr.net/gh/YOUR_USERNAME/kai-vtuber@kai_avatar/kai.vrm', // Replace with your VRM URL
-                (vrmModel) => {
-                    vrm = vrmModel;
-                    scene.add(vrm.scene);
-                    vrm.scene.rotation.y = Math.PI; // Face forward
-
-                    // Basic idle animation (breathing)
-                    mixer = new THREE.AnimationMixer(vrm.scene);
-                    const clip = THREE.AnimationClipCreator.CreateSinusoidalAnimation(
-                        [{ property: 'position.y', start: 0, end: 0.02 }],
-                        2 // 2-second loop
-                    );
-                    const action = mixer.clipAction(clip);
-                    action.play();
-                },
-                (progress) => console.log('Loading VRM:', progress.loaded / progress.total * 100 + '%'),
-                (error) => console.error('VRM Load Error:', error)
-            );
-
-            // Animation loop
-            const clock = new THREE.Clock();
-            function animate() {
-                requestAnimationFrame(animate);
-                if (mixer) mixer.update(clock.getDelta());
-                if (vrm) vrm.update(clock.getDelta()); // Update VRM blendshapes
-                renderer.render(scene, camera);
-            }
-            animate();
-
-            // Handle window resize
-            window.addEventListener('resize', () => {
-                camera.aspect = canvas.clientWidth / canvas.clientHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-            });
-        }
+        const avatarImg = document.getElementById('avatar');
 
         // Load chat history from localStorage
         function loadChatHistory() {
@@ -192,22 +133,22 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // Text-to-Speech with lip-sync
+        // Text-to-Speech (Cantonese)
         function speak(text) {
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = 1.2;
             utterance.pitch = 1.3;
             utterance.volume = 0.9;
+            // Try Cantonese voice (zh-HK)
+            const voices = window.speechSynthesis.getVoices();
+            const cantoneseVoice = voices.find(voice => voice.lang === 'zh-HK');
+            utterance.lang = cantoneseVoice ? 'zh-HK' : 'en-US'; // Fallback to English
+            utterance.voice = cantoneseVoice || voices[0]; // Use first available if no Cantonese
             utterance.onstart = () => {
-                // Open mouth using blendshape
-                if (vrm && vrm.blendShapeProxy) {
-                    vrm.blendShapeProxy.setValue('A', 0.8); // Mouth open (VRoid VRMs typically have 'A')
-                }
+                avatarImg.src = 'https://cdn.jsdelivr.net/gh/hugow0528/kai-vtuber@kai_avatar/kai_open.png';
             };
             utterance.onend = () => {
-                if (vrm && vrm.blendShapeProxy) {
-                    vrm.blendShapeProxy.setValue('A', 0); // Mouth closed
-                }
+                avatarImg.src = 'https://cdn.jsdelivr.net/gh/hugow0528/kai-vtuber@kai_avatar/kai_closed.png';
             };
             window.speechSynthesis.speak(utterance);
         }
@@ -223,7 +164,7 @@
                 messages: [
                     {
                         role: 'system',
-                        content: 'You are KAI, a cheerful, energetic AI VTuber with an anime-style persona. You love gaming, chatting with fans, and making jokes. Respond in a friendly, casual tone with occasional anime-style expressions (e.g., "Nya~", "Ehe!"). Avoid technical jargon unless asked.'
+                        content: 'You are KAI, a cheerful, energetic AI VTuber with an anime-style persona. You love gaming, chatting with fans, and making jokes. Respond in a friendly, casual tone with occasional anime-style expressions (e.g., "Nya~", "Ehe!"). Avoid technical jargon unless asked. If possible, respond in Cantonese to match the TTS output.'
                     },
                     { role: 'user', content: userInput }
                 ],
@@ -242,10 +183,10 @@
                 if (result.choices && result.choices[0]) {
                     return result.choices[0].message.content;
                 }
-                return 'Oh no, my circuits are fritzing! Try again, nya~';
+                return '哎呀，電路出問題啦！再試一次，nya~';
             } catch (error) {
                 console.error('API Error:', error);
-                return 'Ehe, something broke! Gimme a sec, nya~';
+                return 'Ehe，壞掉了！等我一下，nya~';
             }
         }
 
@@ -264,19 +205,19 @@
             addMessageToChat('kai', aiResponse);
             saveMessage('kai', aiResponse);
 
-            // Speak AI response with lip-sync
+            // Speak AI response
             speak(aiResponse);
         }
 
         // Handle Enter key
         userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') send',
-            sendMessage();
+            if (e.key === 'Enter') sendMessage();
         });
 
-        // Initialize on page load
-        initVRM();
-        loadChatHistory();
+        // Ensure voices are loaded before speaking
+        window.speechSynthesis.onvoiceschanged = () => {
+            loadChatHistory();
+        };
     </script>
 </body>
 </html>

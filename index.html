@@ -93,7 +93,8 @@
 <body>
     <div class="container">
         <div class="avatar-section">
-            <img id="avatar" src="https://cdn.jsdelivr.net/gh/hugow0528/kai-vtuber@kai_avatar/kai_closed.png" class="avatar-img">
+            <img id="avatar" src="https://hugow0528.github.io/kai_closed.png" class="avatar-img">
+          
         </div>
         <div class="chat-section">
             <div class="chat-box" id="chatBox"></div>
@@ -145,10 +146,10 @@
             utterance.lang = cantoneseVoice ? 'zh-HK' : 'en-US'; // Fallback to English
             utterance.voice = cantoneseVoice || voices[0]; // Use first available if no Cantonese
             utterance.onstart = () => {
-                avatarImg.src = 'https://cdn.jsdelivr.net/gh/hugow0528/kai-vtuber@kai_avatar/kai_open.png';
+                avatarImg.src = 'https://hugow0528.github.io/kai_open.png';
             };
             utterance.onend = () => {
-                avatarImg.src = 'https://cdn.jsdelivr.net/gh/hugow0528/kai-vtuber@kai_avatar/kai_closed.png';
+                avatarImg.src = 'https://hugow0528.github.io/kai_closed.png';
             };
             window.speechSynthesis.speak(utterance);
         }

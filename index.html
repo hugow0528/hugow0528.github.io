@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link & Text Uploader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon" type="image/png" href="https://via.placeholder.com/32.png?text=📚">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px;
+            background: linear-gradient(135deg, #f0f4ff 0%, #d9e4ff 100%);
+            min-height: 100vh;
+            color: #1a2a44;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            color: #1a2a44;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .section {
+            background: #ffffff;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .section:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+        }
+        label {
+            display: block;
+            margin: 12px 0 6px;
+            font-weight: 600;
+            color: #1a2a44;
+            font-size: 1.1em;
+        }
+        input, textarea {
+            padding: 14px;
+            margin: 6px 0;
+            width: 100%;
+            box-sizing: border-box;
+            border: 2px solid #e0e6ed;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background: #f9fafb;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
+            background: #ffffff;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        button {
+            padding: 14px;
+            margin: 12px 0;
+            width: 100%;
+            box-sizing: border-box;
+            background: #3b82f6;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        button:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+        .spinner {
+            display: none;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 3px solid #fff;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: translateY(-50%) rotate(0deg); }
+            100% { transform: translateY(-50%) rotate(360deg); }
+        }
+        #linksOutput {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+            line-height: 1.8;
+            border: 1px solid #e0e6ed;
+        }
+        a {
+            color: #3b82f6;
+            text-decoration: none;
+            word-break: break-all;
+        }
+        a:hover {
+            text-decoration: underline;
+            color: #2563eb;
+        }
+        .error, .success {
+            margin: 12px 0;
+            font-size: 0.9em;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .error {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .success {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .guide-section {
+            cursor: pointer;
+            background: #f0f9ff;
+        }
+        .guide-content {
+            display: none;
+            padding-top: 15px;
+        }
+        .guide-content.show {
+            display: block;
+        }
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+            background: #1a2a44;
+            color: #e0e6ed;
+            border-radius: 12px;
+            font-size: 0.9em;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        footer:hover {
+            transform: translateY(-4px);
+        }
+        footer a {
+            color: #93c5fd;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+            color: #bfdbfe;
+        }
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .keypad button {
+            padding: 15px;
+            font-size: 1.2em;
+            background: #e0e6ed;
+            color: #1a2a44;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+        .keypad button:hover {
+            background: #d1d5db;
+            transform: translateY(-2px);
+        }
+        .keypad button:active {
+            background: #bfdbfe;
+        }
+        .passcode-display {
+            font-family: monospace;
+            font-size: 1.2em;
+            padding: 12px;
+            background: #f0f4ff;
+            border: 2px solid #e0e6ed;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+            color: #1a2a44;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 20px;
+            }
+            .section {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .keypad {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1><i class="fas fa-chalkboard-teacher"></i> Link & Text Uploader</h1>
+
+    <!-- Upload Section -->
+    <div class="section">
+        <h2><i class="fas fa-upload"></i> Upload Content</h2>
+        <label for="linkInput">Video/Link URL (Optional)</label>
+        <input type="text" id="linkInput" placeholder="e.g., https://youtube.com/...">
+        <label for="textInput">Text/Notes (Optional)</label>
+        <textarea id="textInput" placeholder="Enter any notes or text"></textarea>
+        <label>Generated Passcode</label>
+        <div class="passcode-display" id="passcodeDisplay">Click Upload to generate</div>
+        <button onclick="uploadLink()" id="uploadBtn"><i class="fas fa-cloud-upload-alt"></i> Upload <span class="spinner" id="uploadSpinner"></span></button>
+        <p id="uploadMessage" class="error"></p>
+    </div>
+
+    <!-- Retrieve Section -->
+    <div class="section">
+        <h2><i class="fas fa-download"></i> Retrieve Content</h2>
+        <label for="retrievePasscode">Passcode</label>
+        <input type="text" id="retrievePasscode" placeholder="Enter 5-digit passcode (e.g., 1234A)" readonly>
+        <div class="keypad">
+            <button onclick="appendToPasscode('0')">0</button>
+            <button onclick="appendToPasscode('1')">1</button>
+            <button onclick="appendToPasscode('2')">2</button>
+            <button onclick="appendToPasscode('3')">3</button>
+            <button onclick="appendToPasscode('4')">4</button>
+            <button onclick="appendToPasscode('5')">5</button>
+            <button onclick="appendToPasscode('6')">6</button>
+            <button onclick="appendToPasscode('7')">7</button>
+            <button onclick="appendToPasscode('8')">8</button>
+            <button onclick="appendToPasscode('9')">9</button>
+            <button onclick="appendToPasscode('A')">A</button>
+            <button onclick="appendToPasscode('B')">B</button>
+            <button onclick="appendToPasscode('C')">C</button>
+            <button onclick="appendToPasscode('D')">D</button>
+            <button onclick="clearPasscode()" style="background: #ef4444;"><i class="fas fa-times"></i> Clear</button>
+            <button onclick="deleteLastChar()" style="background: #f59e0b;"><i class="fas fa-backspace"></i> Back</button>
+        </div>
+        <button onclick="retrieveLinks()" id="retrieveBtn"><i class="fas fa-search"></i> Retrieve <span class="spinner" id="retrieveSpinner"></span></button>
+        <button onclick="clearOutput()" id="clearBtn" style="background: #6b7280;"><i class="fas fa-trash"></i> Clear</button>
+        <div id="linksOutput"></div>
+        <p id="retrieveMessage" class="error"></p>
+    </div>
+
+    <!-- Cantonese Guide Section -->
+    <div class="section guide-section" onclick="toggleGuide()">
+        <h2><i class="fas fa-book"></i> 使用指南 (Cantonese Guide)</h2>
+        <div id="guideContent" class="guide-content">
+            <p><strong>教師連結與文字上傳平台使用指南</strong></p>
+            <p>呢個平台畀教師上傳同分享影片連結或文字筆記，並透過密碼同學生分享。以下係使用步驟：</p>
+            <h3>1. 上傳內容</h3>
+            <ul>
+                <li><strong>輸入連結（可選）：</strong>喺「Video/Link URL」欄輸入YouTube或其他影片連結（例如：https://youtube.com/...）。</li>
+                <li><strong>輸入文字（可選）：</strong>喺「Text/Notes」欄輸入任何筆記或文字內容。</li>
+                <li><strong>自動生成密碼：</strong>點擊「Upload」按鈕，系統會自動生成一個獨特嘅5位密碼（例如：1234A）。</li>
+                <li><strong>上傳：</strong>上傳成功後，密碼會顯示喺「Generated Passcode」欄，同時見到綠色提示訊息。</li>
+            </ul>
+            <h3>2. 檢索內容</h3>
+            <ul>
+                <li><strong>輸入密碼：</strong>使用下方嘅數字（0-9）同字母（A-D）按鈕輸入教師提供嘅5位密碼。</li>
+                <li><strong>檢索：</strong>點擊「Retrieve」按鈕，平台會顯示所有同呢個密碼相關嘅連結同文字。</li>
+                <li><strong>清除：</strong>點擊「Clear」按鈕可以清除顯示嘅內容。</li>
+            </ul>
+            <h3>3. 注意事項</h3>
+            <ul>
+                <li>確保連結以「http」或「https」開頭。</li>
+                <li>密碼請妥善保存，唔記得密碼會無法檢索內容。</li>
+                <li>如有問題，請檢查網絡連線或聯繫技術支援。</li>
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        Copyright © 2025 Wong. All rights reserved
+        <br>
+        <a href="mailto:ict_hugo@ms.ccckyc.edu.hk">Contact Support</a>
+        
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase SDK
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js';
+        import { getFirestore, collection, addDoc, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+        import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBu-5Sqh2NTwlMlgUtMIzQCa0mwHAT9KiY",
+            authDomain: "link-uploader.firebaseapp.com",
+            projectId: "link-uploader",
+            storageBucket: "link-uploader.firebasestorage.app",
+            messagingSenderId: "885766212373",
+            appId: "1:885766212373:web:62af1cf5530297783c771c",
+            measurementId: "G-2REMXSR8X8"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Sign in anonymously
+        signInAnonymously(auth)
+            .then(() => console.log("Signed in anonymously"))
+            .catch(error => console.error("Anonymous auth error:", error));
+
+        // Helper function to show spinner
+        function showSpinner(btnId, spinnerId) {
+            document.getElementById(btnId).disabled = true;
+            document.getElementById(spinnerId).style.display = 'block';
+        }
+
+        // Helper function to hide spinner
+        function hideSpinner(btnId, spinnerId) {
+            document.getElementById(btnId).disabled = false;
+            document.getElementById(spinnerId).style.display = 'none';
+        }
+
+        // Generate unique 5-digit passcode (4 digits + 1 letter A-D)
+        async function generateUniquePasscode() {
+            const letters = ['A', 'B', 'C', 'D'];
+            let passcode;
+            let isUnique = false;
+
+            while (!isUnique) {
+                const digits = Math.floor(1000 + Math.random() * 9000); // 4-digit number
+                const letter = letters[Math.floor(Math.random() * letters.length)];
+                passcode = `${digits}${letter}`;
+
+                // Check if passcode exists in Firestore
+                const q = query(collection(db, 'links'), where('passcode', '==', passcode));
+                const querySnapshot = await getDocs(q);
+                isUnique = querySnapshot.empty;
+            }
+
+            return passcode;
+        }
+
+        // Upload content function
+        window.uploadLink = async function() {
+            const link = document.getElementById('linkInput').value.trim();
+            const text = document.getElementById('textInput').value.trim();
+            const uploadMessage = document.getElementById('uploadMessage');
+            const passcodeDisplay = document.getElementById('passcodeDisplay');
+
+            // Validate inputs
+            if (!link && !text) {
+                uploadMessage.className = 'error';
+                uploadMessage.textContent = "Please enter at least a link or text.";
+                return;
+            }
+            if (link && !link.startsWith('http')) {
+                uploadMessage.className = 'error';
+                uploadMessage.textContent = "Please enter a valid URL (starting with http or https).";
+                return;
+            }
+
+            showSpinner('uploadBtn', 'uploadSpinner');
+
+            try {
+                // Generate unique passcode
+                const passcode = await generateUniquePasscode();
+                passcodeDisplay.textContent = passcode;
+
+                // Add content to Firestore
+                await addDoc(collection(db, 'links'), {
+                    link: link || null,
+                    text: text || null,
+                    passcode: passcode,
+                    timestamp: new Date()
+                });
+                uploadMessage.className = 'success';
+                uploadMessage.textContent = "Content uploaded successfully! Passcode: " + passcode;
+                document.getElementById('linkInput').value = '';
+                document.getElementById('textInput').value = '';
+                setTimeout(() => uploadMessage.textContent = '', 5000);
+            } catch (error) {
+                uploadMessage.className = 'error';
+                uploadMessage.textContent = "Error uploading content: " + error.message;
+            } finally {
+                hideSpinner('uploadBtn', 'uploadSpinner');
+            }
+        };
+
+        // Retrieve content function
+        window.retrieveLinks = async function() {
+            const passcode = document.getElementById('retrievePasscode').value.trim();
+            const linksOutput = document.getElementById('linksOutput');
+            const retrieveMessage = document.getElementById('retrieveMessage');
+
+            if (!passcode || passcode.length !== 5) {
+                retrieveMessage.className = 'error';
+                retrieveMessage.textContent = "Please enter a valid 5-digit passcode (e.g., 1234A).";
+                return;
+            }
+
+            showSpinner('retrieveBtn', 'retrieveSpinner');
+
+            try {
+                // Query Firestore for content with the given passcode
+                const q = query(collection(db, 'links'), where('passcode', '==', passcode));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    linksOutput.innerHTML = "<p>No content found for this passcode.</p>";
+                    retrieveMessage.textContent = '';
+                    return;
+                }
+
+                // Display content
+                linksOutput.innerHTML = "<h3>Content:</h3>";
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const contentElement = document.createElement('div');
+                    contentElement.style.marginBottom = '15px';
+                    if (data.link) {
+                        contentElement.innerHTML += `<p><strong>Link:</strong> <a href="${data.link}" target="_blank">${data.link}</a></p>`;
+                    }
+                    if (data.text) {
+                        contentElement.innerHTML += `<p><strong>Text:</strong> ${data.text.replace(/\n/g, '<br>')}</p>`;
+                    }
+                    linksOutput.appendChild(contentElement);
+                });
+                retrieveMessage.textContent = '';
+            } catch (error) {
+                retrieveMessage.className = 'error';
+                retrieveMessage.textContent = "Error retrieving content: " + error.message;
+            } finally {
+                hideSpinner('retrieveBtn', 'retrieveSpinner');
+            }
+        };
+
+        // Keypad input functions
+        window.appendToPasscode = function(char) {
+            const passcodeInput = document.getElementById('retrievePasscode');
+            if (passcodeInput.value.length < 5) {
+                passcodeInput.value += char;
+            }
+        };
+
+        window.clearPasscode = function() {
+            document.getElementById('retrievePasscode').value = '';
+        };
+
+        window.deleteLastChar = function() {
+            const passcodeInput = document.getElementById('retrievePasscode');
+            passcodeInput.value = passcodeInput.value.slice(0, -1);
+        };
+
+        // Clear output function
+        window.clearOutput = function() {
+            document.getElementById('linksOutput').innerHTML = '';
+            document.getElementById('retrieveMessage').textContent = '';
+            document.getElementById('retrievePasscode').value = '';
+        };
+
+        // Toggle guide visibility
+        window.toggleGuide = function() {
+            const guideContent = document.getElementById('guideContent');
+            guideContent.classList.toggle('show');
+        };
+    </script>
+</body>
+</html>

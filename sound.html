@@ -1,17 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Sound Monitor</title>
+    <title>Revision Timer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <link rel="preload" href="https://i.ibb.co/HLY5RCcR/image.webp" as="image">
+    <!-- App name and icons for homepage -->
+    <meta name="apple-mobile-web-app-title" content="Revision Timer">
+    <meta name="application-name" content="Revision Timer">
+    <link rel="apple-touch-icon" href="https://hugo_wong.pyscriptapps.com/revision-timer/latest/image.png">
+    <link rel="icon" href="https://hugo_wong.pyscriptapps.com/revision-timer/latest/image.png">
+    <link rel="manifest" href="/manifest.json">
+    <!-- Preload background image -->
+    <link rel="preload" href="https://i.ibb.co/HLY5RCcR/image.webp" as="image" fetchpriority="high">
     <style>
         body, html {
             margin: 0;
             padding: 0;
             overflow: hidden;
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0; /* Fallback background color */
+            background-color: #f0f0f0;
         }
         canvas {
             position: absolute;
@@ -40,6 +47,12 @@
             width: 100px;
             height: auto;
             margin-bottom: 15px;
+        }
+        #appName {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
         }
         #countdownDisplay {
             font-size: 100px;
@@ -87,6 +100,9 @@
             }
             #appLogo {
                 width: 80px;
+            }
+            #appName {
+                font-size: 20px;
             }
             #countdownDisplay {
                 font-size: 15vw;
@@ -156,7 +172,8 @@
 <body>
     <canvas id="background"></canvas>
     <div id="mainContainer">
-        <img id="appLogo" src="https://hugo_wong.pyscriptapps.com/revision-timer/latest/image.png" alt="App Logo" loading="lazy">
+        <img id="appLogo" src="https://hugo_wong.pyscriptapps.com/revision-timer/latest/image.png" alt="Revision Timer Logo" loading="lazy">
+        <div id="appName">Revision Timer</div>
         <div id="countdownDisplay">5</div>
         <button id="stopButton" disabled>
             <svg width="30" height="30" viewBox="0 0 100 100">
@@ -171,7 +188,7 @@
     </div>
     <script defer>
         const canvas = document.getElementById('background');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const ctx = canvas.getContext('2d', { alpha: false }); // Disable alpha for performance
         const startButton = document.getElementById('startButton');
         const stopButton = document.getElementById('stopButton');
         const countdownDisplay = document.getElementById('countdownDisplay');
@@ -182,9 +199,7 @@
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            if (!isFlashing) {
-                drawScene();
-            }
+            if (!isFlashing) drawScene();
         });
 
         let countdown = 5;
@@ -199,14 +214,13 @@
 
         const backgroundImage = new Image();
         backgroundImage.src = 'https://i.ibb.co/HLY5RCcR/image.webp';
-        backgroundImage.loading = 'lazy';
-        backgroundImage.onload = function() {
-            drawScene();
-        };
+        backgroundImage.loading = 'eager'; // Load background eagerly
+        backgroundImage.decoding = 'async'; // Asynchronous decoding
+        backgroundImage.onload = drawScene;
 
         function drawScene() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (backgroundImage.complete) {
+            if (backgroundImage.complete && backgroundImage.naturalWidth !== 0) {
                 const imgAspect = backgroundImage.width / backgroundImage.height;
                 const canvasAspect = canvas.width / canvas.height;
                 let drawWidth, drawHeight, offsetX, offsetY;
@@ -233,19 +247,21 @@
         }
 
         async function initAudio() {
-            audioContext = new AudioContext();
+            audioContext = new AudioContext({ latencyHint: 'interactive' });
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 microphone = audioContext.createMediaStreamSource(stream);
                 analyser = audioContext.createAnalyser();
-                microphone.connect(analyser);
                 analyser.fftSize = 512;
+                microphone.connect(analyser);
             } catch (err) {
                 console.error('Error accessing microphone:', err);
                 alert('無法訪問麥克風，聲音檢測功能將不可用。');
             }
             try {
-                const response = await fetch('https://taira-komori.jpn.org/sound_os2/arms01/destruction1.mp3');
+                const response = await fetch('https://taira-komori.jpn.org/sound_os2/arms01/destruction1.mp3', {
+                    cache: 'force-cache' // Cache audio for faster subsequent loads
+                });
                 if (!response.ok) throw new Error('Network response was not ok');
                 const arrayBuffer = await response.arrayBuffer();
                 alertBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -273,10 +289,8 @@
                 sum += val * val;
             }
             const rms = Math.sqrt(sum / dataArray.length);
-            if (rms > 0.05) {
-                resetCountdown();
-            }
-            requestAnimationFrame(checkSound);
+            if (rms > 0.05) resetCountdown();
+            if (countdownInterval) requestAnimationFrame(checkSound); // Only continue if interval is active
         }
 
         function flashScreen(timestamp) {
@@ -286,31 +300,12 @@
             drawScene();
             ctx.fillStyle = `rgba(255, 0, 0, ${alpha})`;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            if (isFlashing) {
-                flashAnimationId = requestAnimationFrame(flashScreen);
-            }
-        }
-
-        function triggerAlert() {
-            console.log('Triggering alert');
-            if (alertBuffer) {
-                const source = audioContext.createBufferSource();
-                source.buffer = alertBuffer;
-                source.connect(audioContext.destination);
-                source.start(0);
-            } else {
-                console.error('Alert sound not loaded');
-            }
-            isFlashing = true;
-            flashStartTime = null;
-            flashAnimationId = requestAnimationFrame(flashScreen);
+            if (isFlashing) flashAnimationId = requestAnimationFrame(flashScreen);
         }
 
         async function startCountdown() {
             console.log('Start button clicked');
-            if (!audioContext) {
-                await initAudio();
-            }
+            if (!audioContext) await initAudio();
             if (isFlashing) {
                 isFlashing = false;
                 if (flashAnimationId) {
@@ -360,6 +355,19 @@
             resetCountdown();
             startButton.disabled = false;
             stopButton.disabled = true;
+        }
+
+        function triggerAlert() {
+            console.log('Triggering alert');
+            if (alertBuffer) {
+                const source = audioContext.createBufferSource();
+                source.buffer = alertBuffer;
+                source.connect(audioContext.destination);
+                source.start(0);
+            }
+            isFlashing = true;
+            flashStartTime = null;
+            flashAnimationId = requestAnimationFrame(flashScreen);
         }
 
         startButton.addEventListener('click', startCountdown);

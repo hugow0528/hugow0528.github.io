@@ -3,12 +3,15 @@
 <head>
     <title>Sound Monitor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <link rel="preload" href="https://i.ibb.co/HLY5RCcR/image.webp" as="image">
     <style>
         body, html {
             margin: 0;
             padding: 0;
             overflow: hidden;
             font-family: Arial, sans-serif;
+            background-color: #f0f0f0; /* Fallback background color */
         }
         canvas {
             position: absolute;
@@ -32,6 +35,11 @@
             z-index: 2;
             min-width: 200px;
             max-width: 90%;
+        }
+        #appLogo {
+            width: 100px;
+            height: auto;
+            margin-bottom: 15px;
         }
         #countdownDisplay {
             font-size: 100px;
@@ -76,6 +84,9 @@
             #mainContainer {
                 padding: 15px;
                 min-width: 180px;
+            }
+            #appLogo {
+                width: 80px;
             }
             #countdownDisplay {
                 font-size: 15vw;
@@ -145,6 +156,7 @@
 <body>
     <canvas id="background"></canvas>
     <div id="mainContainer">
+        <img id="appLogo" src="https://hugo_wong.pyscriptapps.com/revision-timer/latest/image.png" alt="App Logo" loading="lazy">
         <div id="countdownDisplay">5</div>
         <button id="stopButton" disabled>
             <svg width="30" height="30" viewBox="0 0 100 100">
@@ -157,9 +169,9 @@
             </svg>
         </button>
     </div>
-    <script>
+    <script defer>
         const canvas = document.getElementById('background');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const startButton = document.getElementById('startButton');
         const stopButton = document.getElementById('stopButton');
         const countdownDisplay = document.getElementById('countdownDisplay');
@@ -186,28 +198,34 @@
         let alertBuffer;
 
         const backgroundImage = new Image();
-        backgroundImage.src = 'https://i.ibb.co/HLY5RCcR/image.png';
+        backgroundImage.src = 'https://i.ibb.co/HLY5RCcR/image.webp';
+        backgroundImage.loading = 'lazy';
         backgroundImage.onload = function() {
             drawScene();
         };
 
         function drawScene() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const imgAspect = backgroundImage.width / backgroundImage.height;
-            const canvasAspect = canvas.width / canvas.height;
-            let drawWidth, drawHeight, offsetX, offsetY;
-            if (imgAspect > canvasAspect) {
-                drawWidth = canvas.width;
-                drawHeight = canvas.width / imgAspect;
-                offsetX = 0;
-                offsetY = (canvas.height - drawHeight) / 2;
+            if (backgroundImage.complete) {
+                const imgAspect = backgroundImage.width / backgroundImage.height;
+                const canvasAspect = canvas.width / canvas.height;
+                let drawWidth, drawHeight, offsetX, offsetY;
+                if (imgAspect > canvasAspect) {
+                    drawWidth = canvas.width;
+                    drawHeight = canvas.width / imgAspect;
+                    offsetX = 0;
+                    offsetY = (canvas.height - drawHeight) / 2;
+                } else {
+                    drawHeight = canvas.height;
+                    drawWidth = canvas.height * imgAspect;
+                    offsetX = (canvas.width - drawWidth) / 2;
+                    offsetY = 0;
+                }
+                ctx.drawImage(backgroundImage, offsetX, offsetY, drawWidth, drawHeight);
             } else {
-                drawHeight = canvas.height;
-                drawWidth = canvas.height * imgAspect;
-                offsetX = (canvas.width - drawWidth) / 2;
-                offsetY = 0;
+                ctx.fillStyle = '#f0f0f0';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
-            ctx.drawImage(backgroundImage, offsetX, offsetY, drawWidth, drawHeight);
         }
 
         function updateCountdownDisplay() {

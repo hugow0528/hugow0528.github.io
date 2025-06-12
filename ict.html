@@ -4,41 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hugo Programland</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
             margin: 0;
             padding: 40px 20px;
             background-color: #f0f2f5;
             line-height: 1.6;
+            position: relative;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
         h1 {
-            color: #2c3e50;
+            color: #1a2b49;
             margin-bottom: 20px;
-            font-size: 2.2em;
+            font-size: 2.5em;
             text-align: center;
+            font-weight: 700;
         }
 
         h2 {
-            color: #34495e;
+            color: #2c3e50;
             margin-top: 40px;
-            font-size: 1.6em;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 5px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #e0e4e8;
+            padding-bottom: 8px;
         }
 
         p {
-            color: #555;
+            color: #4a4a4a;
             font-size: 1.1em;
             margin-bottom: 25px;
         }
@@ -50,33 +53,33 @@
 
         li {
             margin: 15px 0;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 5px;
-            transition: transform 0.5s, box-shadow 0.4s;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         li:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
         }
 
         a {
             text-decoration: none;
-            color: #007BFF;
-            font-weight: 500;
+            color: #2563eb;
+            font-weight: 600;
             font-size: 1.1em;
         }
 
         a:hover {
-            color: #0056b3;
+            color: #1e40af;
             text-decoration: underline;
         }
 
         .new-tag {
-            background: #e74c3c;
+            background: #e11d48;
             color: white;
-            padding: 2px 8px;
+            padding: 3px 10px;
             border-radius: 12px;
             font-size: 0.8em;
             margin-left: 10px;
@@ -85,52 +88,176 @@
 
         .form-button {
             display: inline-block;
-            padding: 12px 25px;
-            background: #007BFF;
+            padding: 12px 30px;
+            background: #2563eb;
             color: white;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 8px;
             margin: 20px 0;
             text-align: center;
-            transition: background 0.3s;
+            transition: background 0.3s ease, transform 0.2s ease;
         }
 
         .form-button:hover {
-            background: #0056b3;
+            background: #1e40af;
+            transform: translateY(-2px);
             color: white;
-            text-decoration: none;
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            font-size: 0.9em;
-            color: #777;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
         }
 
         .logo {
-            max-width: 150px;
+            max-width: 120px;
             width: 100%;
             height: auto;
             display: block;
             margin: 0 auto 20px;
-            border-radius: 5px;
+            border-radius: 8px;
         }
 
-        @media (max-width: 600px) {
+        /* Footer Styles */
+        footer {
+            margin-top: 60px;
+            padding: 40px 20px;
+            background: #1a2b49;
+            color: #e0e4e8;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 0.9em;
+            color: #d1d5db;
+        }
+
+        footer .advisor {
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        .social-links {
+            margin: 20px 0;
+        }
+
+        .social-links a {
+            color: #d1d5db;
+            font-size: 1.5em;
+            margin: 0 10px;
+            transition: color 0.3s ease;
+        }
+
+        .social-links a:hover {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+
+        .newsletter-form {
+            margin-top: 20px;
+        }
+
+        .newsletter-form input {
+            padding: 10px;
+            border: none;
+            border-radius: 5px 0 0 5px;
+            width: 200px;
+            font-size: 0.9em;
+        }
+
+        .newsletter-form button {
+            padding: 10px 20px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .newsletter-form button:hover {
+            background: #1e40af;
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2563eb;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 1.2em;
+            display: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .back-to-top.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .back-to-top:hover {
+            background: #1e40af;
+            transform: translateY(-3px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
             .container {
                 padding: 20px;
             }
+
             h1 {
-                font-size: 1.8em;
+                font-size: 2em;
             }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            li {
+                padding: 10px;
+            }
+
+            .logo {
+                max-width: 100px;
+            }
+
+            .newsletter-form input {
+                width: 150px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            h1 {
+                font-size: 1.6em;
+            }
+
+            h2 {
+                font-size: 1.3em;
+            }
+
             li {
                 padding: 8px;
             }
-            .logo {
-                max-width: 100px;
+
+            .newsletter-form input {
+                width: 120px;
+                font-size: 0.8em;
+            }
+
+            .newsletter-form button {
+                padding: 10px 15px;
+                font-size: 0.8em;
+            }
+
+            .social-links a {
+                font-size: 1.2em;
+                margin: 0 8px;
             }
         }
     </style>
@@ -138,7 +265,7 @@
 <body>
     <div class="container">
         <a href="index.html">
-         </a>
+        </a>
 
         <h1>Hugo Programland</h1>
 
@@ -147,16 +274,35 @@
             <li><a href="https://hugo_wong.pyscriptapps.com/s4-ict-ai-code-review-platform/latest/" target="_blank">AI Code Review Platform</a><span class="new-tag">NEW</span></li>
             <li><a href="https://hugo_wong.pyscriptapps.com/school-deepseek/latest/" target="_blank">DeepSeek 0528 AI</a><span class="new-tag">NEW</span></li>
             <li><a href="https://hugo_wong.pyscriptapps.com/s4-ict-multi-ai/latest/" target="_blank">Multi-AI Platform</a><span class="new-tag">NEW</span></li>
-            <li><a href="https://hugo_wong.pyscriptapps.com/latex-math/latest/" target="_blank">latex-math translate</a></li>
-          <li><a href="https://hugo_wong.pyscriptapps.com/ict-py-web-2/latest/" target="_blank">ICT python</a></li>
-
-
+            <li><a href="https://hugo_wong.pyscriptapps.com/latex-math/latest/" target="_blank">LaTeX-Math Translate</a></li>
+            <li><a href="https://hugo_wong.pyscriptapps.com/ict-py-web-2/latest/" target="_blank">ICT Python</a></li>
         </ul>
-
-        <footer>
-            Copyright © 2025 Hugo Wong. All rights reserved
-<p>Advisor : Dragon Lee</p>
-        </footer>
     </div>
+
+    <footer>
+        <p>Copyright © 2025 Hugo Wong. All rights reserved.</p>
+        <p class="advisor">Advisor: Dragon Lee</p>
+        
+    </footer>
+
+    <a href="#" class="back-to-top"><i class="fas fa-arrow-up"></i></a>
+
+    <script>
+        // Back to Top Button Functionality
+        window.addEventListener('scroll', () => {
+            const backToTop = document.querySelector('.back-to-top');
+            if (window.scrollY > 300) {
+                backToTop.classList.add('show');
+            } else {
+                backToTop.classList.remove('show');
+            }
+        });
+
+        // Smooth Scroll for Back to Top
+        document.querySelector('.back-to-top').addEventListener('click', (e) => {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
 </body>
 </html>

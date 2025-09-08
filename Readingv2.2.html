@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文章幻燈片 Pro v2.2 (Intelligent Build)</title>
+    <title>文章幻燈片 Pro v2.2 (智能版)</title>
 
     <!-- Google Fonts: Noto Serif TC -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,9 +12,6 @@
     
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Library for reliable image conversion during export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         :root {
@@ -175,10 +172,8 @@
                   historyModal = document.getElementById('history-modal'), historyList = document.getElementById('history-list'), historyCloseBtn = document.getElementById('history-close-btn'),
                   exportBookBtn = document.getElementById('export-book-btn'), chapterNav = document.getElementById('chapter-nav');
             
-            const LS_SESSION_KEY = 'articleSlideshow_currentSession_v2.2', LS_HISTORY_KEY = 'articleSlideshow_history_v2.2', CHUNK_SIZE = 20, 
-                  SMART_CHUNK_THRESHOLD = 25, MAX_RETRIES = 3, RETRY_WORKER_INTERVAL = 15000;
-            let currentSession = {}, infiniteRetryWorker = null;
-
+            const LS_SESSION_KEY = 'articleSlideshow_currentSession_v2.2', LS_HISTORY_KEY = 'articleSlideshow_history_v2.2', CHUNK_SIZE = 20, SINGLE_CHAPTER_THRESHOLD = 30, RETRY_INTERVAL = 30000;
+            let currentSession = {}, retryDaemonID = null;
             const SVG_LOAD = `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm3.71,8.71L12,14.41V8a1,1,0,0,0-2,0v7.41l-1.29-1.3a1,1,0,0,0-1.42,1.42l3,3A1,1,0,0,0,11,18a1,1,0,0,0,.71-.29l3-3a1,1,0,1,0-1.42-1.42Z"/></svg>`,
                   SVG_DELETE = `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20,6H16V5a3,3,0,0,0-3-3H11A3,3,0,0,0,8,5V6H4A1,1,0,0,0,4,8H5V19a3,3,0,0,0,3,3h8a3,3,0,0,0,3-3V8h1a1,1,0,0,0,0-2ZM10,5a1,1,0,0,1,1-1h2a1,1,0,0,1,1,1V6H10Zm7,14a1,1,0,0,1-1,1H8a1,1,0,0,1-1-1V8H17Z"/></svg>`;
 
@@ -212,8 +207,8 @@
                         renderChapterNav();
                         if (currentSession.chunks && currentSession.chunks.length > 0) {
                             displayChunk(currentSession.activeChunkIndex || 0);
-                            startInfiniteRetryWorker(); // Resume worker on load
                             showNotification("已成功載入您上次的進度！");
+                            startRetryDaemon(); // Resume daemon on load
                         }
                     } catch (e) { localStorage.removeItem(LS_SESSION_KEY); currentSession = {}; }
                 } else {
@@ -235,20 +230,27 @@
                     btn.className = 'chapter-btn';
                     btn.textContent = `第 ${index + 1} 章`;
                     btn.dataset.chunkIndex = index;
-                    if (index === currentSession.activeChunkIndex) btn.classList.add('active');
+                    if (index === currentSession.activeChunkIndex) {
+                        btn.classList.add('active');
+                    }
                     chapterNav.appendChild(btn);
                 });
             }
             chapterNav.addEventListener('click', e => {
                 if (e.target.matches('.chapter-btn')) {
                     const index = parseInt(e.target.dataset.chunkIndex, 10);
-                    if (index !== currentSession.activeChunkIndex) displayChunk(index);
+                    if (index !== currentSession.activeChunkIndex) {
+                        currentSession.activeChunkIndex = index;
+                        displayChunk(index); // Just display, generation is handled in the background
+                    }
                 }
             });
 
             function displayChunk(chunkIndex) {
                 currentSession.activeChunkIndex = chunkIndex;
-                renderChapterNav();
+                chapterNav.querySelectorAll('.chapter-btn').forEach(btn => {
+                    btn.classList.toggle('active', parseInt(btn.dataset.chunkIndex, 10) === chunkIndex);
+                });
 
                 const chunkParagraphs = currentSession.chunks[chunkIndex] || [];
                 const startSlideIndex = chunkIndex * CHUNK_SIZE;
@@ -256,7 +258,8 @@
                 
                 slidesContainer.innerHTML = '';
                 if (chunkSlides.length === 0) {
-                    slidesContainer.innerHTML = `<div class="placeholder"><i class="fas fa-scroll"></i><p>此章節無內容</p></div>`; return;
+                    slidesContainer.innerHTML = `<div class="placeholder"><i class="fas fa-scroll"></i><p>此章節無內容</p></div>`;
+                    return;
                 }
                 
                 chunkSlides.forEach((slideData, indexInChunk) => {
@@ -282,7 +285,8 @@
                     slidesContainer.appendChild(slideElement);
                 });
 
-                prevSlideBtn.disabled = false; nextSlideBtn.disabled = false;
+                prevSlideBtn.disabled = false;
+                nextSlideBtn.disabled = false;
                 const hasAnyGeneratedSlides = Object.values(currentSession.slides).some(s => s.status === 'success');
                 exportBookBtn.disabled = !hasAnyGeneratedSlides;
                 saveCurrentSession();
@@ -293,241 +297,192 @@
             // =======================================================
             resetBtn.addEventListener('click', () => {
                 if (!confirm("您確定要重置所有內容嗎？目前進度將會遺失。")) return;
-                if(infiniteRetryWorker) clearInterval(infiniteRetryWorker);
                 currentSession = { articleText: '', chunks: [], slides: {}, activeChunkIndex: 0 };
                 saveCurrentSession();
-                articleInput.value = ''; articleInput.dispatchEvent(new Event('input'));
+                articleInput.value = '';
+                articleInput.dispatchEvent(new Event('input'));
                 slidesContainer.innerHTML = `<div class="placeholder"><i class="fas fa-scroll"></i><p>輸入文章並點擊「生成幻燈片」按鈕後，這裡將顯示帶有AI生成插圖的幻燈片</p></div>`;
-                chapterNav.innerHTML = ''; prevSlideBtn.disabled = true; nextSlideBtn.disabled = true; exportBookBtn.disabled = true;
-                progressContainer.style.display = 'none'; progressBar.style.width = '0%';
+                chapterNav.innerHTML = '';
+                prevSlideBtn.disabled = true;
+                nextSlideBtn.disabled = true;
+                exportBookBtn.disabled = true;
+                progressContainer.style.display = 'none';
+                progressBar.style.width = '0%';
+                if (retryDaemonID) clearInterval(retryDaemonID);
+                retryDaemonID = null;
                 showNotification('已重置所有內容！');
             });
-            // History functions are unchanged and kept for brevity.
-            saveHistoryBtn.addEventListener('click', () => { /* ... */ });
+            saveHistoryBtn.addEventListener('click', () => {
+                 if (!currentSession.articleText || Object.keys(currentSession.slides).length === 0) { showNotification("請先生成幻燈片再儲存", true); return; }
+                const history = JSON.parse(localStorage.getItem(LS_HISTORY_KEY) || '[]');
+                const newEntry = { id: Date.now(), title: currentSession.articleText.substring(0, 40) + '...', session: currentSession };
+                history.unshift(newEntry);
+                localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(history));
+                showNotification("成功儲存至歷史紀錄！");
+            });
             historyBtn.addEventListener('click', () => { renderHistoryList(); historyModal.style.display = 'flex'; });
             historyCloseBtn.addEventListener('click', () => historyModal.style.display = 'none');
-            function renderHistoryList() { /* ... */ }
-            historyList.addEventListener('click', (e) => { /* ... */ });
+            function renderHistoryList() {
+                const history = JSON.parse(localStorage.getItem(LS_HISTORY_KEY) || '[]');
+                historyList.innerHTML = history.length === 0 ? '<p>尚無歷史紀錄。</p>' : '';
+                history.forEach(item => {
+                    const li = document.createElement('li'); li.className = 'history-item';
+                    li.innerHTML = `<span class="history-item-title" title="${item.title}">${item.title}</span><div class="history-item-actions"><button class="history-icon-btn" title="載入紀錄" data-id="${item.id}" data-action="load">${SVG_LOAD}</button><button class="history-icon-btn" title="刪除紀錄" data-id="${item.id}" data-action="delete">${SVG_DELETE}</button></div>`;
+                    historyList.appendChild(li);
+                });
+            }
+            historyList.addEventListener('click', (e) => {
+                const button = e.target.closest('.history-icon-btn'); if (!button) return;
+                const action = button.dataset.action; const id = parseInt(button.dataset.id, 10);
+                let history = JSON.parse(localStorage.getItem(LS_HISTORY_KEY) || '[]');
+                if (action === 'load' && confirm("載入此紀錄將會覆蓋您目前的進度，確定要繼續嗎？")) {
+                    const itemToLoad = history.find(item => item.id === id);
+                    if (itemToLoad) { currentSession = itemToLoad.session; saveCurrentSession(); loadSessionFromLocalStorage(); historyModal.style.display = 'none'; }
+                } else if (action === 'delete' && confirm("您確定要永久刪除此項紀錄嗎？")) {
+                    history = history.filter(item => item.id !== id); localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(history)); renderHistoryList(); showNotification("紀錄已刪除");
+                }
+            });
 
             // =======================================================
             // ===               EXPORT BOOK FUNCTION              ===
             // =======================================================
-            async function convertImgElementToBase64(imgElement) {
-                try {
-                    const canvas = await html2canvas(imgElement, {
-                        useCORS: true,
-                        backgroundColor: null, // Transparent background
-                    });
-                    return canvas.toDataURL('image/png');
-                } catch (e) {
-                    console.error("html2canvas conversion failed:", e);
-                    return 'https://via.placeholder.com/400?text=圖片匯出錯誤';
-                }
-            }
-
+             async function convertImgToBase64(url) { try { const response = await fetch(url); const blob = await response.blob(); return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onloadend = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(blob); }); } catch (e) { return 'https://via.placeholder.com/400?text=Image+Load+Error'; } }
             exportBookBtn.addEventListener('click', async () => {
                 showNotification("正在準備您的書本...");
-                if (Object.keys(currentSession.slides).length === 0) {
-                    showNotification("沒有可匯出的幻燈片", true); return;
-                }
+                if (Object.keys(currentSession.slides).length === 0) { showNotification("沒有可匯出的幻燈片", true); return; }
 
-                // Temporarily render all slides to get their image elements
-                const tempContainer = document.createElement('div');
-                tempContainer.style.display = 'none';
-                document.body.appendChild(tempContainer);
-                
-                const allSlidesData = Object.values(currentSession.slides).filter(s => s.status === 'success');
-                for (const slideData of allSlidesData) {
-                    if (slideData.imageUrl) {
-                        const img = document.createElement('img');
-                        img.src = slideData.imageUrl;
-                        img.crossOrigin = "anonymous"; // Important for canvas
-                        img.dataset.paragraph = slideData.paragraph;
-                        tempContainer.appendChild(img);
-                    }
-                }
-                
-                await new Promise(res => setTimeout(res, 1000)); // Wait for images to potentially load in hidden div
+                let pagesHtml = `<div class="page cover"><h1>${currentSession.articleText.substring(0, 50)}...</h1></div><div class="page back"></div>`;
+                const allSlides = Object.values(currentSession.slides).filter(s => s.status === 'success');
 
-                let pageContents = [];
-                // Add cover
-                pageContents.push({type: 'cover', title: currentSession.articleText.substring(0, 50) + '...'});
-
-                for (let i = 0; i < allSlidesData.length; i++) {
-                    const slideData = allSlidesData[i];
-                    // Add chapter divider if it's the start of a new chapter
-                    if (currentSession.chunks.length > 1 && i > 0 && i % CHUNK_SIZE === 0) {
+                for (let i = 0; i < allSlides.length; i++) {
+                    const slide = allSlides[i];
+                    if (currentSession.chunks.length > 1 && i % CHUNK_SIZE === 0) {
                         const chapterNum = (i / CHUNK_SIZE) + 1;
-                        pageContents.push({type: 'divider', title: `第 ${chapterNum} 章`});
+                        pagesHtml += `<div class="page chapter-title"><h2>第 ${chapterNum} 章</h2></div><div class="page back"></div>`;
                     }
-                    
-                    const imgElement = tempContainer.querySelector(`img[src="${slideData.imageUrl}"]`);
-                    const imageSrc = await convertImgElementToBase64(imgElement);
-                    pageContents.push({type: 'slide', imageSrc: imageSrc, text: slideData.paragraph });
+                    const imageSrc = await convertImgToBase64(slide.imageUrl);
+                    pagesHtml += `<div class="page"><div class="page-content"><img src="${imageSrc}" alt="Slide image ${i + 1}"><p>${slide.paragraph}</p></div></div><div class="page back"></div>`;
                 }
-                
-                document.body.removeChild(tempContainer);
 
-                let pagesHtml = '';
-                pageContents.forEach(content => {
-                    if (content.type === 'cover') {
-                        pagesHtml += `<div class="page cover"><h1>${content.title}</h1></div>`;
-                    } else if (content.type === 'divider') {
-                        pagesHtml += `<div class="page chapter-divider"><h2>${content.title}</h2></div>`;
-                    } else if (content.type === 'slide') {
-                        pagesHtml += `<div class="page"><div class="page-content"><img src="${content.imageSrc}" alt="幻燈片插圖"><p>${content.text}</p></div></div>`;
-                    }
-                });
-
-                const bookHtml = `<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Exported Book</title><style>body{margin:0;font-family:'Noto Serif TC',serif;background-color:#f0f4f8;display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden}.book{width:90vw;height:80vh;max-width:1200px;position:relative;perspective:2500px;transition:transform .5s}.page{position:absolute;width:50%;height:100%;top:0;background-color:white;box-shadow:0 0 20px rgba(0,0,0,0.2);transform-origin:left;transition:transform .8s ease-in-out;transform-style:preserve-3d;backface-visibility:hidden}.page:nth-child(odd){left:0;transform-origin:right;}.page:nth-child(even){left:50%;transform-origin:left}.page.flipped{transform:rotateY(-180deg)}.page .page-content{padding:30px;display:flex;flex-direction:column;height:100%;box-sizing:border-box}.page img{width:100%;height:50%;object-fit:cover;border-radius:8px;margin-bottom:20px}.page p{font-size:1.1em;line-height:1.7;flex-grow:1;overflow-y:auto}.cover{display:flex;justify-content:center;align-items:center;background:#2c5282;color:white;text-align:center}.cover h1{font-size:2.5em}.chapter-divider{display:flex;justify-content:center;align-items:center;background:#e2e8f0}.chapter-divider h2{font-size:3em;color:#4a5568}#prev-btn,#next-btn{position:fixed;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);color:white;border:none;padding:15px;border-radius:50%;cursor:pointer;z-index:1000}#prev-btn{left:20px}#next-btn{right:20px}@media (max-width:900px){.book{width:100%;height:auto;perspective:none;padding:10px}.page,.page:nth-child(odd),.page:nth-child(even){position:relative;width:100%;height:auto;left:0;margin-bottom:20px;box-shadow:0 5px 15px rgba(0,0,0,.1);transform:none!important}#prev-btn,#next-btn{display:none}}</style></head><body><div class="book" id="book">${pagesHtml}</div><button id="prev-btn">&lt;</button><button id="next-btn">&gt;</button><script>const book=document.getElementById("book"),pages=Array.from(book.getElementsByClassName("page")),prevBtn=document.getElementById("prev-btn"),nextBtn=document.getElementById("next-btn");let currentLocation=0,numOfPages=pages.length;function openBook(){book.style.transform="translateX(50%)";prevBtn.style.transform="translateX(-180px)";nextBtn.style.transform="translateX(180px)"}function closeBook(isAtBeginning){book.style.transform=isAtBeginning?"translateX(0)":"translateX(100%)";prevBtn.style.transform="translateX(0px)";nextBtn.style.transform="translateX(0px)"}function goNextPage(){if(currentLocation<numOfPages){if(currentLocation===0){openBook();pages[0].classList.add("flipped")}else if(currentLocation%2!==0){pages[currentLocation].classList.add("flipped")}currentLocation++}}function goPrevPage(){if(currentLocation>0){if(currentLocation===1){closeBook(true);pages[0].classList.remove("flipped")}else if(currentLocation%2===0){pages[currentLocation-1].classList.remove("flipped")}currentLocation--}}pages.forEach((p,i)=>{p.style.zIndex=numOfPages-i});nextBtn.addEventListener("click",goNextPage);prevBtn.addEventListener("click",goPrevPage);<\/script></body></html>`;
-
+                const bookHtml = `<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Exported Book</title><style>body{margin:0;font-family:'Noto Serif TC',serif;background-color:#f0f4f8;display:flex;justify-content:center;align-items:center;min-height:100vh;overflow:hidden}#book-container{width:90vw;height:80vh;max-width:1200px}.book{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .5s}.page{position:absolute;width:50%;height:100%;top:0;background-color:#fff;box-shadow:0 0 20px rgba(0,0,0,.2);transform-origin:left;transition:transform .8s ease-in-out;backface-visibility:hidden;display:flex;justify-content:center;align-items:center;overflow:hidden}.page.right{left:50%;transform-origin:left;border-left:1px solid #ccc}.page.left{left:0;transform-origin:right;border-right:1px solid #ccc}.page.flipped{transform:rotateY(-180deg)}.page .page-content{padding:30px;display:flex;flex-direction:column;height:100%;width:100%;box-sizing:border-box}.page img{width:100%;height:50%;object-fit:cover;border-radius:8px;margin-bottom:20px}.page p{font-size:1.1em;line-height:1.7;flex-grow:1;overflow-y:auto}.cover h1{font-size:2.5em;padding:20px}.chapter-title h2{font-size:3em;color:#4a5568}.back{background-color:#f7f7f7}#prev-btn,#next-btn{position:fixed;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);color:white;border:none;padding:15px;border-radius:50%;cursor:pointer;z-index:1000}#prev-btn{left:20px}#next-btn{right:20px}@media (max-width:768px){body{overflow:auto}#book-container{height:auto;width:100%}.book{position:relative;height:auto;transform-style:flat}.page,.page.left,.page.right{position:relative!important;width:90%;margin:20px auto;left:0!important;height:auto;transform:none!important;box-shadow:0 5px 15px rgba(0,0,0,.1)}.page.back{display:none}#prev-btn,#next-btn{display:none}}</style></head><body><div id="book-container"><div class="book" id="book">${pagesHtml}</div></div><button id="prev-btn">&lt;</button><button id="next-btn">&gt;</button><script>const book=document.getElementById("book"),pages=Array.from(book.getElementsByClassName("page")),prevBtn=document.getElementById("prev-btn"),nextBtn=document.getElementById("next-btn");let currentLocation=0;const totalLocations=pages.length/2;pages.forEach((page,i)=>{if(i%2===0){page.classList.add("left");page.style.zIndex=pages.length-i}else{page.classList.add("right");page.style.zIndex=pages.length-i}});function openBook(){book.style.transform="translateX(50%)";prevBtn.style.transform="translateX(-180px)";nextBtn.style.transform="translateX(180px)"}function closeBook(isAtBeginning){book.style.transform=isAtBeginning?"translateX(0)":"translateX(100%)";prevBtn.style.transform="translateX(0)";nextBtn.style.transform="translateX(0)"}function goNextPage(){if(currentLocation<totalLocations){if(currentLocation===0)openBook();const currentPage=pages[currentLocation*2];const nextPage=pages[currentLocation*2+1];currentPage.classList.add("flipped");nextPage.classList.add("flipped");currentLocation++;if(currentLocation===totalLocations)closeBook(false)}}function goPrevPage(){if(currentLocation>0){currentLocation--;const prevPage=pages[currentLocation*2];const prevNextPage=pages[currentLocation*2+1];prevPage.classList.remove("flipped");prevNextPage.classList.remove("flipped");if(currentLocation===0)closeBook(true)}}nextBtn.addEventListener("click",goNextPage);prevBtn.addEventListener("click",goPrevPage);<\/script></body></html>`;
                 const blob = new Blob([bookHtml], { type: 'text/html' });
                 const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
                 link.download = 'digital-book.html'; link.click(); URL.revokeObjectURL(link.href);
                 showNotification("書本匯出完成！", false);
             });
 
-
             // =======================================================
             // ===        API & GENERATION CORE LOGIC              ===
             // =======================================================
-            async function translateWithFallback(text) { /* ... implementation unchanged ... */ }
+            async function translateWithFallback(text) {
+                if (GOOGLE_TRANSLATE_API_URL) {
+                    try { const response = await fetch(GOOGLE_TRANSLATE_API_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ text: text, source_lang: 'zh-TW', target_lang: 'en' }) }); if (!response.ok) throw new Error('Google API non-200'); const data = await response.json(); if (data.translatedText) return data.translatedText; throw new Error(data.error || 'Invalid Google API response'); } catch (error) { console.warn('Primary translation API failed, trying fallback. Error:', error); }
+                }
+                try { const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=zh-TW|en&de=${MYMEMORY_API_EMAIL}`; const response = await fetch(apiUrl); if (!response.ok) throw new Error(`MyMemory API status ${response.status}`); const data = await response.json(); if (data.responseStatus !== 200) throw new Error(data.responseDetails || 'Daily limit likely exceeded'); return data.responseData.translatedText; } catch (error) { throw error; }
+            }
             function generateImagePrompt(englishParagraph) { return `Illustration of: "${englishParagraph}". Rendered in a classic manga style with an emphasis on simplicity. Use only black and white, with clean, uniform, and minimalist line art. The overall feel should be a high-contrast, clear monochrome comic panel or sketch. No text is included`; }
+            async function generateImageWithRetries(prompt, baseSeed) { const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?token=Jeq-UCxbpvrqUEzN&model=flux&enhance=false&private=true&nologo=true&seed=${baseSeed}`; const response = await fetch(imageUrl, {mode: 'cors'}); if (!response.ok || !response.headers.get('content-type')?.startsWith('image')) throw new Error(`無效圖片回應`); return imageUrl; }
             
-            async function processSingleSlide(globalIndex, isInitialAttempt = false) {
+            async function processSingleSlide(globalIndex) {
                 const slideData = currentSession.slides[globalIndex];
-                if (!slideData) return;
                 const slideElement = slidesContainer.querySelector(`[data-global-index="${globalIndex}"]`);
                 const imageContainer = slideElement ? slideElement.querySelector('.slide-image') : null;
-                
-                if (imageContainer && slideData.status === 'pending') { 
-                    imageContainer.innerHTML = `<div class="loading"><div class="spinner"></div><p>處理中...</p></div>`;
-                }
-
+                if (imageContainer && !imageContainer.querySelector('.spinner')) { imageContainer.innerHTML = `<div class="loading"><div class="spinner"></div><p>處理中...</p></div>`; }
                 try {
                     const englishPara = await translateWithFallback(slideData.paragraph);
                     const prompt = generateImagePrompt(englishPara);
-                    const maxRetries = isInitialAttempt ? MAX_RETRIES : 1; // Only retry a lot on the first pass
-                    const imageUrl = await generateImageWithRetries(prompt, Date.now(), maxRetries);
-
+                    const imageUrl = await generateImageWithRetries(prompt, Date.now());
                     currentSession.slides[globalIndex] = { ...slideData, imageUrl, status: 'success', error: null };
-                    if (imageContainer) {
-                        imageContainer.innerHTML = `<img src="${imageUrl}" alt="幻燈片插圖" style="cursor: pointer;" title="點擊以重新生成此圖片">`;
-                    }
+                    if (imageContainer) { imageContainer.innerHTML = `<img src="${imageUrl}" alt="幻燈片插圖" style="cursor: pointer;" title="點擊以重新生成此圖片">`; }
                 } catch (error) {
                     const errorMessage = error.message || '未知錯誤';
                     currentSession.slides[globalIndex] = { ...slideData, imageUrl: null, status: 'error', error: errorMessage };
-                    if (imageContainer) {
-                        imageContainer.innerHTML = `<div class="generation-error" data-action="retry-generation" title="點擊以重新生成此圖片"><i class="fas fa-sync-alt"></i><p>${errorMessage}<br>點擊重試</p></div>`;
-                    }
+                    if (imageContainer) { imageContainer.innerHTML = `<div class="generation-error" data-action="retry-generation" title="點擊以重新生成此圖片"><i class="fas fa-sync-alt"></i><p>${errorMessage}<br>點擊重試</p></div>`; }
                 }
                 saveCurrentSession();
             }
 
-            async function generateImageWithRetries(prompt, baseSeed, maxAttempts = MAX_RETRIES, attempt = 1) {
-                if (attempt > maxAttempts) throw new Error(`已達最大重試次數`);
-                const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?token=Jeq-UCxbpvrqUEzN&model=flux&enhance=false&private=true&nologo=true&seed=${baseSeed + attempt}`;
-                try {
-                    const response = await fetch(imageUrl, {mode: 'cors'});
-                    if (!response.ok || !response.headers.get('content-type')?.startsWith('image')) throw new Error(`無效圖片`);
-                    return imageUrl;
-                } catch (error) {
-                    console.warn(`Attempt ${attempt} failed. Retrying...`, error);
-                    await new Promise(res => setTimeout(res, 1000 * attempt));
-                    return generateImageWithRetries(prompt, baseSeed, maxAttempts, attempt + 1);
-                }
+            function startRetryDaemon() {
+                if (retryDaemonID) clearInterval(retryDaemonID);
+                retryDaemonID = setInterval(async () => {
+                    const failedSlideIndex = Object.keys(currentSession.slides).find(index => currentSession.slides[index].status === 'error');
+                    if (failedSlideIndex) {
+                        console.log(`重試 Daemon: 發現錯誤幻燈片 #${parseInt(failedSlideIndex, 10) + 1}。正在重試...`);
+                        await processSingleSlide(parseInt(failedSlideIndex, 10));
+                    }
+                }, RETRY_INTERVAL);
             }
-            
+
             // =======================================================
             // ===            MAIN TRIGGER FUNCTIONS               ===
             // =======================================================
-            function splitArticleIntoParagraphs(article) {
-                const sentences = article.split(/(?<=[。！？；])/g);
-                const paragraphs = []; let currentParagraph = '';
-                sentences.forEach(sentence => {
-                    if ((currentParagraph + sentence).length <= 100) currentParagraph += sentence;
-                    else { if (currentParagraph.trim()) paragraphs.push(currentParagraph.trim()); currentParagraph = sentence; }
-                });
-                if (currentParagraph.trim()) paragraphs.push(currentParagraph.trim());
-                return paragraphs.filter(p => p.trim() !== '');
-            }
+            function splitArticleIntoParagraphs(article) { const sentences = article.split(/(?<=[。！？；])/g); const paragraphs = []; let currentParagraph = ''; sentences.forEach(sentence => { if ((currentParagraph + sentence).length <= 100) currentParagraph += sentence; else { if (currentParagraph.trim()) paragraphs.push(currentParagraph.trim()); currentParagraph = sentence; } }); if (currentParagraph.trim()) paragraphs.push(currentParagraph.trim()); return paragraphs.filter(p => p.trim() !== ''); }
             
             generateBtn.addEventListener('click', async function() {
                 const article = articleInput.value.trim();
                 if (!article) { showNotification('請輸入文章內容！', true); return; }
-
-                if(infiniteRetryWorker) clearInterval(infiniteRetryWorker);
-
                 const paragraphs = splitArticleIntoParagraphs(article);
                 currentSession = { articleText: article, chunks: [], slides: {}, activeChunkIndex: 0 };
                 
-                if (paragraphs.length < SMART_CHUNK_THRESHOLD) {
+                if (paragraphs.length <= SINGLE_CHAPTER_THRESHOLD) {
                     currentSession.chunks.push(paragraphs);
                 } else {
                     for (let i = 0; i < paragraphs.length; i += CHUNK_SIZE) {
                         currentSession.chunks.push(paragraphs.slice(i, i + CHUNK_SIZE));
                     }
                 }
-
+                
                 saveCurrentSession();
                 renderChapterNav();
-                await generateSlidesForChunk(0, true);
-                startProactiveBackgroundGeneration();
-                startInfiniteRetryWorker();
+                
+                // --- Start Generation ---
+                generateBtn.disabled = true; resetBtn.disabled = true;
+                progressContainer.style.display = 'block'; progressBar.style.width = '0%';
+
+                await generateSlidesForChunk(0, true); // Generate first chunk and show progress
+
+                if (currentSession.chunks.length > 1) {
+                    showNotification("第一章已生成！其餘章節將在背景自動生成。");
+                    startBackgroundGeneration();
+                    startRetryDaemon();
+                } else {
+                     startRetryDaemon(); // Also start for short articles
+                }
+                
+                generateBtn.disabled = false; resetBtn.disabled = false;
             });
 
-            async function generateSlidesForChunk(chunkIndex, isInitialChunk = false) {
-                generateBtn.disabled = true; resetBtn.disabled = true;
-                if(isInitialChunk) { progressContainer.style.display = 'block'; progressBar.style.width = '0%'; }
+            async function startBackgroundGeneration() {
+                 for (let i = 1; i < currentSession.chunks.length; i++) {
+                    const firstSlideOfChunkIndex = i * CHUNK_SIZE;
+                    if (!currentSession.slides[firstSlideOfChunkIndex]) { 
+                         await generateSlidesForChunk(i, false); // Generate subsequent chunks without progress bar
+                    }
+                }
+                showNotification("所有章節已在背景生成完畢！");
+            }
+
+            async function generateSlidesForChunk(chunkIndex, showProgress) {
+                if(showProgress) { progressBar.style.width = '0%'; }
                 
                 const chunkParagraphs = currentSession.chunks[chunkIndex];
                 const startSlideIndex = chunkIndex * CHUNK_SIZE;
-                chunkParagraphs.forEach((p, i) => { currentSession.slides[startSlideIndex + i] = { paragraph: p, status: 'pending' }; });
-                if (chunkIndex === currentSession.activeChunkIndex) displayChunk(chunkIndex);
+                chunkParagraphs.forEach((p, i) => { if (!currentSession.slides[startSlideIndex + i]) currentSession.slides[startSlideIndex + i] = { paragraph: p, status: 'pending' }; });
+                if (currentSession.activeChunkIndex === chunkIndex) displayChunk(chunkIndex);
 
                 let completedCount = 0;
-                const processingPromises = [];
                 for (let i = 0; i < chunkParagraphs.length; i++) {
                     const globalIndex = startSlideIndex + i;
-                    const promise = processSingleSlide(globalIndex, true).then(() => {
-                        if (isInitialChunk) {
-                            completedCount++;
-                            progressBar.style.width = `${(completedCount / chunkParagraphs.length) * 100}%`;
-                        }
-                    });
-                    processingPromises.push(promise);
-                }
-                await Promise.all(processingPromises);
-
-                if (isInitialChunk) {
-                    showNotification(`第 1 章生成完成！`);
-                    progressContainer.style.display = 'none';
-                } else {
-                    showNotification(`背景生成：第 ${chunkIndex + 1} 章完成。`);
-                }
-                generateBtn.disabled = false; resetBtn.disabled = false;
-            }
-
-            async function startProactiveBackgroundGeneration() {
-                for (let i = 1; i < currentSession.chunks.length; i++) {
-                    await generateSlidesForChunk(i, false);
-                    await new Promise(res => setTimeout(res, 50)); // Tiny pause between chapters
-                }
-            }
-
-            function startInfiniteRetryWorker() {
-                if (infiniteRetryWorker) clearInterval(infiniteRetryWorker);
-                infiniteRetryWorker = setInterval(async () => {
-                    const errorIndexes = Object.keys(currentSession.slides).filter(
-                        index => currentSession.slides[index].status === 'error'
-                    );
-
-                    if (errorIndexes.length > 0) {
-                        const indexToRetry = errorIndexes[0]; // Retry one at a time
-                        console.log(`[Worker] Retrying failed slide ${parseInt(indexToRetry, 10) + 1}...`);
-                        await processSingleSlide(parseInt(indexToRetry, 10), false);
+                    await processSingleSlide(globalIndex);
+                    if(showProgress) {
+                        completedCount++;
+                        progressBar.style.width = `${(completedCount / chunkParagraphs.length) * 100}%`;
                     }
-                }, RETRY_WORKER_INTERVAL);
+                }
+                if(showProgress) {
+                     showNotification(`第 ${chunkIndex + 1} 章生成完成！`);
+                     progressContainer.style.display = 'none';
+                }
             }
 
             slidesContainer.addEventListener('click', async function(event) {
@@ -537,7 +492,7 @@
                     if (slideElement && slideElement.dataset.globalIndex) {
                         const globalIndex = parseInt(slideElement.dataset.globalIndex, 10);
                         showNotification(`正在手動重試幻燈片 ${globalIndex + 1}...`);
-                        await processSingleSlide(globalIndex, true);
+                        await processSingleSlide(globalIndex);
                     }
                 }
             });
@@ -549,41 +504,22 @@
             nextSlideBtn.addEventListener('click', () => { slidesContainer.scrollBy({ left: 430, behavior: 'smooth' }); });
             loadSessionFromLocalStorage();
             
-            // Original modal editor script is self-contained and unchanged.
-            // It is kept here for the platform to be complete.
+            // =======================================================
+            // ===        ORIGINAL MODAL EDITOR SCRIPT (KEPT)        ===
+            // =======================================================
             const modal = document.getElementById('outline-editor-modal'), modalTextarea = document.getElementById('modal-textarea'), modalTitle = document.getElementById('modal-title'),
                   modalSaveBtn = document.getElementById('modal-save-btn'), modalCloseBtn = document.getElementById('modal-close-btn'), ocrBtn = document.getElementById('modal-ocr-btn');
             if(modal) {
                 let currentEditingElement = null;
-                const openModalEditor = (element) => {
-                    currentEditingElement = element; modalTextarea.value = currentEditingElement.value;
-                    modalTitle.textContent = element.id === 'article-input' ? '輸入文章內容' : '編輯內容';
-                    modal.style.display = 'flex'; modalTextarea.focus();
-                };
+                const openModalEditor = (element) => { currentEditingElement = element; modalTextarea.value = currentEditingElement.value; modalTitle.textContent = element.id === 'article-input' ? '輸入文章內容' : '編輯內容'; modal.style.display = 'flex'; modalTextarea.focus(); };
                 const closeModalEditor = () => { modal.style.display = 'none'; currentEditingElement = null; };
-                const saveAndCloseEditor = () => {
-                    if (currentEditingElement) {
-                        currentEditingElement.value = modalTextarea.value;
-                        currentEditingElement.dispatchEvent(new Event('input', { bubbles: true }));
-                    }
-                    closeModalEditor();
-                };
+                const saveAndCloseEditor = () => { if (currentEditingElement) { currentEditingElement.value = modalTextarea.value; currentEditingElement.dispatchEvent(new Event('input', { bubbles: true })); } closeModalEditor(); };
                 document.body.addEventListener('click', (event) => { if (event.target.id === 'article-input' && event.target.tagName === 'TEXTAREA') { event.preventDefault(); openModalEditor(event.target); } });
-                modalSaveBtn.addEventListener('click', saveAndCloseEditor);
-                modalCloseBtn.addEventListener('click', closeModalEditor);
+                modalSaveBtn.addEventListener('click', saveAndCloseEditor); modalCloseBtn.addEventListener('click', closeModalEditor);
                 modal.addEventListener('click', (event) => { if (event.target === modal) closeModalEditor(); });
                 let ocrWindow = null; const VERCEL_OCR_URL = 'https://gemini-ocr-proxy.vercel.app/';
-                ocrBtn.addEventListener('click', () => {
-                    if (ocrWindow && !ocrWindow.closed) { ocrWindow.focus(); return; }
-                    ocrWindow = window.open(VERCEL_OCR_URL, 'OCRWindow', 'width=650,height=850,scrollbars=yes,resizable=yes');
-                });
-                window.addEventListener('message', (event) => {
-                    if (event.origin !== new URL(VERCEL_OCR_URL).origin) return;
-                    if (event.data && event.data.type === 'ocrResult') {
-                        modalTextarea.value += (modalTextarea.value.trim() ? '\n' : '') + event.data.text;
-                        if (ocrWindow) ocrWindow.close(); modalTextarea.focus();
-                    }
-                });
+                ocrBtn.addEventListener('click', () => { if (ocrWindow && !ocrWindow.closed) { ocrWindow.focus(); return; } ocrWindow = window.open(VERCEL_OCR_URL, 'OCRWindow', 'width=650,height=850,scrollbars=yes,resizable=yes'); });
+                window.addEventListener('message', (event) => { if (event.origin !== new URL(VERCEL_OCR_URL).origin) return; if (event.data && event.data.type === 'ocrResult') { modalTextarea.value += (modalTextarea.value.trim() ? '\n' : '') + event.data.text; if (ocrWindow) ocrWindow.close(); modalTextarea.focus(); } });
             }
         });
     </script>

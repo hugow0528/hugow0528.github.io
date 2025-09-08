@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章幻燈片 Pro v2</title>
+
+    <!-- Google Fonts: Noto Serif TC -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- Base and Font Setup --- */
+        :root {
+            --primary-color: #3182ce;
+            --primary-dark: #2b6cb0;
+            --secondary-color: #e53e3e;
+            --tertiary-color: #6b7280;
+            --text-dark: #2d3748;
+            --text-light: #4a5568;
+            --bg-light: #f0f4f8;
+            --bg-gradient: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+            --white: #ffffff;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Serif TC', serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* --- Header and Typography --- */
+        header {
+            text-align: center;
+            padding: 40px 0 20px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #2c5282;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            background: linear-gradient(to right, #2c5282, #4a5568);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c5282;
+        }
+        
+        /* --- App Layout --- */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+        
+        .input-section, .slides-section {
+            padding: 30px;
+        }
+
+        .input-section {
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .input-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+        
+        .input-header i {
+            font-size: 28px;
+            color: var(--primary-color);
+        }
+        
+        /* --- Form Elements and Controls --- */
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 20px;
+            border: 2px solid #cbd5e0;
+            border-radius: 12px;
+            font-size: 16px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.3s;
+            background: var(--white);
+            font-family: 'Noto Serif TC', serif;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(66, 153, 225, 0.2);
+        }
+        
+        .char-count {
+            text-align: right;
+            color: var(--text-light);
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 14px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary-color), var(--primary-dark));
+            color: var(--white);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(to right, var(--primary-dark), #2c5282);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(43, 108, 176, 0.35);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(to right, var(--secondary-color), #c53030);
+            color: var(--white);
+        }
+        .btn-secondary:hover {
+            background: linear-gradient(to right, #c53030, #9b2c2c);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(197, 48, 48, 0.35);
+        }
+
+        .btn-tertiary {
+            background: linear-gradient(to right, var(--tertiary-color), #4b5563);
+            color: var(--white);
+        }
+        .btn-tertiary:hover {
+            background: linear-gradient(to right, #4b5563, #1f2937);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(75, 85, 99, 0.35);
+        }
+
+        .btn-export {
+            background: linear-gradient(to right, #38a169, #2f855a);
+            color: var(--white);
+        }
+        .btn-export:hover {
+            background: linear-gradient(to right, #2f855a, #276749);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(47, 133, 90, 0.35);
+        }
+
+        .btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* --- Slides and Carousel --- */
+        .slides-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .slides-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 30px;
+            padding: 20px;
+            margin: 0 -20px;
+            scroll-behavior: smooth;
+            min-height: 550px;
+            align-items: center;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) var(--border-color);
+        }
+        
+        .slides-container::-webkit-scrollbar { height: 10px; }
+        .slides-container::-webkit-scrollbar-track { background: var(--border-color); border-radius: 10px; }
+        .slides-container::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 10px; }
+        
+        .slide {
+            flex: 0 0 400px;
+            width: 400px;
+            background: var(--white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid var(--border-color);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s forwards;
+        }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.18);
+        }
+        
+        .slide-header {
+            background: #2c5282;
+            color: var(--white);
+            padding: 15px 20px;
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 600;
+        }
+        
+        .slide-image {
+            width: 100%;
+            height: 400px;
+            background: #f7fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .slide-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s;
+            padding: 0;
+        }
+        
+        .generation-error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            cursor: pointer;
+            color: #c53030;
+            border: 2px dashed #e53e3e;
+            border-radius: 12px;
+            height: 100%;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        .generation-error:hover {
+            background-color: #fed7d7;
+        }
+        .generation-error i {
+            font-size: 3rem;
+        }
+        .generation-error p {
+            font-weight: 600;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .slide-text {
+            padding: 20px;
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--text-dark);
+            min-height: 150px;
+            background: #f8fafc;
+        }
+
+        .placeholder, .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--text-light);
+            padding: 30px;
+            flex-grow: 1;
+        }
+        
+        .placeholder i { font-size: 70px; margin-bottom: 25px; color: #cbd5e0; opacity: 0.7; }
+        .placeholder p { font-size: 18px; max-width: 500px; line-height: 1.6; font-weight: 500; }
+        .loading { gap: 25px; padding: 50px; }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(49, 130, 206, 0.15);
+            border-top: 6px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        .slide-controls-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .slide-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .slide-nav {
+            background: var(--primary-color);
+            color: var(--white);
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(49, 130, 206, 0.3);
+        }
+        
+        .slide-nav:hover {
+            background: var(--primary-dark);
+            transform: scale(1.08);
+            box-shadow: 0 6px 15px rgba(49, 130, 206, 0.4);
+        }
+        
+        .slide-nav:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* --- Chapter Navigation --- */
+        #chapter-nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px 0;
+        }
+        .chapter-btn {
+            padding: 8px 16px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            border: 1px solid #cbd5e0;
+            background-color: var(--white);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .chapter-btn:hover {
+            background-color: #edf2f7;
+            border-color: var(--primary-color);
+        }
+        .chapter-btn.active {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        /* --- Utilities --- */
+        .notification {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            padding: 18px 28px;
+            border-radius: 10px;
+            background: #38a169;
+            color: var(--white);
+            font-weight: 600;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+            transform: translateX(120%);
+            transition: transform 0.4s ease;
+            z-index: 2100;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        
+        .notification.show { transform: translateX(0); }
+        .notification.error { background: var(--secondary-color); }
+        
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary-color), var(--primary-dark));
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--text-light);
+            font-size: 15px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 20px;
+        }
+        
+        /* --- History Modal --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .modal-content h3 {
+            margin: 0 0 20px;
+            font-size: 1.5rem;
+            color: #2c5282;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        #history-list {
+            list-style: none;
+            padding: 0;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+        .history-item:hover { background-color: #f7fafc; }
+        
+        .history-item-title {
+            font-weight: 600;
+            color: var(--text-light);
+            flex-grow: 1;
+            margin-right: 15px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-item-actions { display: flex; gap: 10px; }
+        .history-icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+        .history-icon-btn:hover { background-color: #e2e8f0; }
+        .history-icon-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--text-light);
+            transition: fill 0.2s;
+        }
+        .history-icon-btn:hover svg { fill: var(--text-dark); }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body { padding: 15px; }
+            h1 { font-size: 2.2rem; }
+            .slide { flex-basis: 340px; width: 340px; }
+            .slide-image { height: 340px; }
+        }
+        
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            h1 { font-size: 1.8rem; }
+            .controls { flex-direction: column; }
+            .btn { width: 100%; justify-content: center; }
+            .slide { flex-basis: 85vw; width: 85vw; max-width: 320px; }
+            .slide-image { height: 85vw; max-height: 320px; }
+            .slides-header { justify-content: center; }
+        }
+        
+        /* Universal Modal styles */
+        textarea:not(.no-modal-editor){ cursor: pointer; background-color: #f0f8ff; transition: background-color 0.2s; }
+        textarea:not(.no-modal-editor):hover { background-color: #e6f2ff; }
+        .outline-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.65); z-index: 2000; justify-content: center; align-items: center; padding: 1rem; box-sizing: border-box; }
+        .outline-modal-content { background-color: #fdfdfd; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 90vw; height: 90vh; position: relative; animation: fadeIn 0.3s; display: flex; flex-direction: column; }
+        .outline-modal-content h3 { margin-top: 0; margin-bottom: 15px; color: #333; font-size: 1.2em; font-weight: 700; }
+        #modal-textarea { width: 100%; box-sizing: border-box; font-size: 1.3em; line-height: 1.6; border: 1px solid #ccc; border-radius: 8px; padding: 10px; flex-grow: 1; min-height: 250px; }
+        .outline-modal-content .modal-buttons { text-align: right; margin-top: 15px; }
+        .outline-modal-content .preview-close-btn { position: absolute; top: 10px; right: 10px; font-size: 2rem; border: none; background: none; cursor: pointer; }
+        .btn-action { display: inline-block; padding: 10px 20px; margin: 5px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; font-family: 'Noto Serif TC', serif; transition: all 0.3s ease; border: none; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); color: white; background-color: var(--primary-color); }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); filter: brightness(110%); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>文章幻燈片 Pro v2</h1>
+        </header>
+        
+        <div class="app-container">
+            <div class="input-section">
+                <div class="input-header"><i class="fas fa-edit"></i><h2>輸入文章內容</h2></div>
+                <div class="input-container">
+                    <textarea id="article-input" placeholder="請在此輸入繁體中文文章內容..."></textarea>
+                    <div class="char-count">字數: <span id="char-count">0</span></div>
+                </div>
+                <div class="progress-container" id="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+                <div class="controls">
+                    <button id="generate-btn" class="btn btn-primary"><i class="fas fa-magic"></i> 生成幻燈片</button>
+                    <button id="save-history-btn" class="btn btn-tertiary"><i class="fas fa-save"></i> 儲存紀錄</button>
+                    <button id="history-btn" class="btn btn-tertiary"><i class="fas fa-history"></i> 查看紀錄</button>
+                    <button id="reset-btn" class="btn btn-secondary"><i class="fas fa-redo"></i> 重置內容</button>
+                </div>
+            </div>
+            
+            <div class="slides-section">
+                <div class="slides-header">
+                    <div class="input-header"><i class="fas fa-images"></i><h2>幻燈片展示</h2></div>
+                    <button id="export-book-btn" class="btn btn-export" disabled><i class="fas fa-book-open"></i> 匯出為書本</button>
+                </div>
+                <div class="slides-container" id="slides-container">
+                    <div class="placeholder"><i class="fas fa-scroll"></i><p>輸入文章並點擊「生成幻燈片」按鈕後，這裡將顯示帶有AI生成插圖的幻燈片</p></div>
+                </div>
+                <div class="slide-controls-wrapper">
+                    <div id="chapter-nav"></div>
+                    <div class="slide-controls">
+                        <div class="slide-nav" id="prev-slide" title="上一張"><i class="fas fa-chevron-left"></i></div>
+                        <div class="slide-nav" id="next-slide" title="下一張"><i class="fas fa-chevron-right"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer><p>© 2025 陳冠健</p></footer>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <!-- History Modal -->
+    <div id="history-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>歷史紀錄</h3>
+            <ul id="history-list"></ul>
+            <button id="history-close-btn" class="preview-close-btn" title="關閉" style="color: #333;">&times;</button>
+        </div>
+    </div>
+
+    <!-- Original Outline Editor Modal -->
+    <div id="outline-editor-modal" class="outline-modal-overlay">
+        <div class="outline-modal-content">
+            <h3 id="modal-title">編輯內容</h3>
+            <textarea id="modal-textarea" rows="15"></textarea>
+            <div class="modal-buttons">
+                <button id="modal-ocr-btn" class="btn-action" style="background-color: #17a2b8;">OCR</button>
+                <button id="modal-save-btn" class="btn-action">輸入</button>
+            </div>
+            <button id="modal-close-btn" class="preview-close-btn" title="關閉">&times;</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- DOM Element Selection ---
+            const articleInput = document.getElementById('article-input');
+            const charCount = document.getElementById('char-count');
+            const generateBtn = document.getElementById('generate-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const slidesContainer = document.getElementById('slides-container');
+            const prevSlideBtn = document.getElementById('prev-slide');
+            const nextSlideBtn = document.getElementById('next-slide');
+            const notification = document.getElementById('notification');
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const saveHistoryBtn = document.getElementById('save-history-btn');
+            const historyBtn = document.getElementById('history-btn');
+            const historyModal = document.getElementById('history-modal');
+            const historyList = document.getElementById('history-list');
+            const historyCloseBtn = document.getElementById('history-close-btn');
+            const exportBookBtn = document.getElementById('export-book-btn');
+            const chapterNav = document.getElementById('chapter-nav');
+
+            // --- Constants ---
+            const LS_SESSION_KEY = 'articleSlideshow_currentSession_v2';
+            const LS_HISTORY_KEY = 'articleSlideshow_history_v2';
+            const CHUNK_SIZE = 20; // Number of paragraphs per chapter
+            const MAX_RETRIES = 3;
+            const IMAGE_GEN_BATCH_SIZE = 4;
+            let currentSession = {};
+
+            // --- SVG Icons for History ---
+            const SVG_LOAD = `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm3.71,8.71L12,14.41V8a1,1,0,0,0-2,0v7.41l-1.29-1.3a1,1,0,0,0-1.42,1.42l3,3A1,1,0,0,0,11,18a1,1,0,0,0,.71-.29l3-3a1,1,0,1,0-1.42-1.42Z"/></svg>`;
+            const SVG_DELETE = `<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20,6H16V5a3,3,0,0,0-3-3H11A3,3,0,0,0,8,5V6H4A1,1,0,0,0,4,8H5V19a3,3,0,0,0,3,3h8a3,3,0,0,0,3-3V8h1a1,1,0,0,0,0-2ZM10,5a1,1,0,0,1,1-1h2a1,1,0,0,1,1,1V6H10Zm7,14a1,1,0,0,1-1,1H8a1,1,0,0,1-1-1V8H17Z"/></svg>`;
+
+            // =======================================================
+            // ===             CORE HELPER FUNCTIONS               ===
+            // =======================================================
+
+            function showNotification(message, isError = false) {
+                const icon = isError ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
+                notification.innerHTML = `<i class="${icon}"></i> <span>${message}</span>`;
+                notification.className = 'notification';
+                if (isError) notification.classList.add('error');
+                notification.classList.add('show');
+                setTimeout(() => notification.classList.remove('show'), 3500);
+            }
+
+            function debounce(func, delay) {
+                let timeout;
+                return function(...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), delay);
+                };
+            }
+
+            // =======================================================
+            // ===        SESSION & LOCAL STORAGE MANAGEMENT       ===
+            // =======================================================
+
+            function saveCurrentSession() {
+                try {
+                    localStorage.setItem(LS_SESSION_KEY, JSON.stringify(currentSession));
+                } catch (e) {
+                    console.error("Error saving session to localStorage:", e);
+                }
+            }
+
+            function loadSessionFromLocalStorage() {
+                const savedSession = localStorage.getItem(LS_SESSION_KEY);
+                if (savedSession) {
+                    try {
+                        currentSession = JSON.parse(savedSession);
+                        articleInput.value = currentSession.articleText || '';
+                        articleInput.dispatchEvent(new Event('input'));
+
+                        renderChapterNav();
+                        if (currentSession.chunks && currentSession.chunks.length > 0) {
+                            renderChunk(currentSession.activeChunkIndex || 0);
+                            showNotification("已成功載入您上次的進度！");
+                        }
+                    } catch (e) {
+                        console.error("Error loading session:", e);
+                        localStorage.removeItem(LS_SESSION_KEY);
+                        currentSession = {};
+                    }
+                } else {
+                    currentSession = { articleText: '', chunks: [], slides: {}, activeChunkIndex: 0 };
+                }
+            }
+            
+            const debouncedSaveText = debounce((text) => {
+                currentSession.articleText = text;
+                saveCurrentSession();
+            }, 500);
+
+            articleInput.addEventListener('input', () => {
+                charCount.textContent = articleInput.value.length;
+                debouncedSaveText(articleInput.value);
+            });
+
+            // =======================================================
+            // ===          CHAPTER & ON-DEMAND LOGIC              ===
+            // =======================================================
+
+            function renderChapterNav() {
+                chapterNav.innerHTML = '';
+                if (!currentSession.chunks || currentSession.chunks.length <= 1) return;
+
+                currentSession.chunks.forEach((_, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'chapter-btn';
+                    btn.textContent = `Chapter ${index + 1}`;
+                    btn.dataset.chunkIndex = index;
+                    if (index === currentSession.activeChunkIndex) {
+                        btn.classList.add('active');
+                    }
+                    chapterNav.appendChild(btn);
+                });
+            }
+
+            chapterNav.addEventListener('click', (e) => {
+                if (e.target.matches('.chapter-btn')) {
+                    const index = parseInt(e.target.dataset.chunkIndex);
+                    if (index !== currentSession.activeChunkIndex) {
+                        renderChunk(index);
+                    }
+                }
+            });
+
+            async function renderChunk(chunkIndex) {
+                currentSession.activeChunkIndex = chunkIndex;
+                const activeBtn = chapterNav.querySelector('.active');
+                if (activeBtn) activeBtn.classList.remove('active');
+                const newActiveBtn = chapterNav.querySelector(`[data-chunk-index="${chunkIndex}"]`);
+                if (newActiveBtn) newActiveBtn.classList.add('active');
+
+                const chunkParagraphs = currentSession.chunks[chunkIndex];
+                const startSlideIndex = chunkIndex * CHUNK_SIZE;
+                const chunkSlides = chunkParagraphs.map((p, i) => currentSession.slides[startSlideIndex + i] || { paragraph: p, status: 'pending' });
+
+                const needsGeneration = chunkSlides.some(s => s.status === 'pending');
+
+                if (needsGeneration) {
+                    await generateSlidesForChunk(chunkIndex);
+                } else {
+                    displaySlides(chunkSlides);
+                }
+                saveCurrentSession();
+            }
+
+            function displaySlides(slidesData) {
+                slidesContainer.innerHTML = '';
+                if (!slidesData || slidesData.length === 0) {
+                    slidesContainer.innerHTML = `<div class="placeholder"><i class="fas fa-scroll"></i><p>這裡將顯示生成的幻燈片</p></div>`;
+                    prevSlideBtn.disabled = true;
+                    nextSlideBtn.disabled = true;
+                    exportBookBtn.disabled = true;
+                    return;
+                }
+
+                slidesData.forEach((slideData, index) => {
+                    const slideElement = document.createElement('div');
+                    slideElement.className = 'slide';
+                    slideElement.dataset.paragraph = slideData.paragraph;
+
+                    let imageContent = '';
+                    if (slideData.status === 'success' && slideData.imageUrl) {
+                        imageContent = `<img src="${slideData.imageUrl}" alt="幻燈片插圖" style="cursor: pointer;" title="點擊以重新生成此圖片">`;
+                    } else if (slideData.status === 'error') {
+                        imageContent = `<div class="generation-error" data-action="retry-generation" title="點擊以重新生成此圖片"><i class="fas fa-image-slash"></i><p>圖片生成失敗。<br>請點擊此處重試。</p></div>`;
+                    } else {
+                        imageContent = `<div class="loading"><div class="spinner"></div></div>`;
+                    }
+
+                    slideElement.innerHTML = `
+                        <div class="slide-header">
+                            <span>幻燈片 ${currentSession.activeChunkIndex * CHUNK_SIZE + index + 1}</span>
+                            <span>${slideData.paragraph.length} 字</span>
+                        </div>
+                        <div class="slide-image">${imageContent}</div>
+                        <div class="slide-text"><p>${slideData.paragraph}</p></div>
+                    `;
+                    slidesContainer.appendChild(slideElement);
+                });
+
+                prevSlideBtn.disabled = false;
+                nextSlideBtn.disabled = false;
+                exportBookBtn.disabled = Object.values(currentSession.slides).length === 0;
+            }
+
+            // =======================================================
+            // ===                 RESET FUNCTION                  ===
+            // =======================================================
+            
+            resetBtn.addEventListener('click', function() {
+                if (!confirm("您確定要重置所有內容嗎？目前進度將會遺失。")) return;
+                currentSession = { articleText: '', chunks: [], slides: {}, activeChunkIndex: 0 };
+                saveCurrentSession();
+                articleInput.value = '';
+                articleInput.dispatchEvent(new Event('input'));
+                slidesContainer.innerHTML = `<div class="placeholder"><i class="fas fa-scroll"></i><p>輸入文章並點擊「生成幻燈片」按鈕後，這裡將顯示帶有AI生成插圖的幻燈片</p></div>`;
+                chapterNav.innerHTML = '';
+                prevSlideBtn.disabled = true;
+                nextSlideBtn.disabled = true;
+                exportBookBtn.disabled = true;
+                progressContainer.style.display = 'none';
+                progressBar.style.width = '0%';
+                showNotification('已重置所有內容！');
+            });
+
+            // =======================================================
+            // ===              HISTORY MANAGEMENT                 ===
+            // =======================================================
+
+            saveHistoryBtn.addEventListener('click', () => {
+                if (!currentSession.articleText || Object.keys(currentSession.slides).length === 0) {
+                    showNotification("請先生成幻燈片再儲存", true);
+                    return;
+                }
+                const history = JSON.parse(localStorage.getItem(LS_HISTORY_KEY) || '[]');
+                const newEntry = {
+                    id: Date.now(),
+                    title: currentSession.articleText.substring(0, 40) + '...',
+                    session: currentSession
+                };
+                history.unshift(newEntry);
+                localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(history));
+                showNotification("成功儲存至歷史紀錄！");
+            });
+
+            historyBtn.addEventListener('click', () => {
+                renderHistoryList();
+                historyModal.style.display = 'flex';
+            });
+            historyCloseBtn.addEventListener('click', () => historyModal.style.display = 'none');
+
+            function renderHistoryList() {
+                const history = JSON.parse(localStorage.getItem(LS_HISTORY_KEY) || '[]');
+                historyList.innerHTML = history.length === 0 ? '<p>尚無歷史紀錄。</p>' : '';
+                history.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'history-item';
+                    li.innerHTML = `
+                        <span class="history-item-title" title="${item.title}">${item.title}</span>
+                        <div class="history-item-actions">
+                            <button class="history-icon-btn" title="載入紀錄" data-id="${item.id}" data-action="load">${SVG_LOAD}</button>
+                            <button class="history-icon-btn" title="刪除紀錄" data-id="${item.id}" data-action="delete">${SVG_DELETE}</button>
+                        </div>
+                    `;
+                    historyList.appendChild(li);
+                });
+            }
+
+            historyList.addEventListener('click', (e) => {
+                const button = e.target.closest('.history-icon-btn');
+                if (!button) return;
+                const action = button.dataset.action;
+                const id = parseInt(button.dataset.id);
+                let history = JSON.parse(localStorage.getItem(LS_HISTORY_KEY) || '[]');
+                
+                if (action === 'load' && confirm("載入此紀錄將會覆蓋您目前的進度，確定要繼續嗎？")) {
+                    const itemToLoad = history.find(item => item.id === id);
+                    if (itemToLoad) {
+                        currentSession = itemToLoad.session;
+                        saveCurrentSession();
+                        loadSessionFromLocalStorage(); // Reloads UI from session
+                        historyModal.style.display = 'none';
+                    }
+                } else if (action === 'delete' && confirm("您確定要永久刪除此項紀錄嗎？")) {
+                    history = history.filter(item => item.id !== id);
+                    localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(history));
+                    renderHistoryList();
+                    showNotification("紀錄已刪除");
+                }
+            });
+
+            // =======================================================
+            // ===               EXPORT BOOK FUNCTION              ===
+            // =======================================================
+            
+            async function convertImgToBase64(url) {
+                // CORS proxy for external images
+                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                try {
+                    const response = await fetch(proxyUrl + url);
+                    const blob = await response.blob();
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (e) {
+                    console.error("Base64 conversion failed:", e);
+                    return 'https://via.placeholder.com/400?text=Image+Load+Error';
+                }
+            }
+
+            exportBookBtn.addEventListener('click', async () => {
+                showNotification("正在準備您的書本...");
+                if (Object.keys(currentSession.slides).length === 0) {
+                    showNotification("沒有可匯出的幻燈片", true);
+                    return;
+                }
+
+                let pagesHtml = `<div class="page cover"><h1>${currentSession.articleText.substring(0, 50)}...</h1></div>`;
+                const allSlides = Object.values(currentSession.slides);
+
+                for (let i = 0; i < allSlides.length; i++) {
+                    const slide = allSlides[i];
+                    let imageSrc = 'https://via.placeholder.com/400?text=Image+Missing';
+                    if (slide.imageUrl) {
+                        imageSrc = await convertImgToBase64(slide.imageUrl);
+                    }
+                    pagesHtml += `
+                        <div class="page">
+                            <div class="page-content">
+                                <img src="${imageSrc}" alt="Slide image ${i + 1}">
+                                <p>${slide.paragraph}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                const bookHtml = `
+                    <!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Exported Book</title>
+                    <style>
+                        body { margin: 0; font-family: 'Noto Serif TC', serif; background-color: #f0f4f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                        .book { width: 90vw; height: 80vh; max-width: 1200px; position: relative; perspective: 2500px; }
+                        .page { position: absolute; width: 50%; height: 100%; top: 0; background-color: white; box-shadow: 0 0 20px rgba(0,0,0,0.2); transform-origin: left; transition: transform 0.8s ease-in-out; transform-style: preserve-3d; }
+                        .page:nth-child(odd) { left: 0; transform-origin: right; }
+                        .page:nth-child(even) { left: 50%; transform-origin: left; }
+                        .page.flipped { transform: rotateY(-180deg); }
+                        .page .page-content { padding: 30px; display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
+                        .page img { width: 100%; height: 50%; object-fit: cover; border-radius: 8px; margin-bottom: 20px; }
+                        .page p { font-size: 1.1em; line-height: 1.7; flex-grow: 1; overflow-y: auto; }
+                        .cover { display: flex; justify-content: center; align-items: center; background: #2c5282; color: white; text-align: center; }
+                        .cover h1 { font-size: 2.5em; }
+                        #prev-btn, #next-btn { position: fixed; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; padding: 15px; border-radius: 50%; cursor: pointer; z-index: 1000; }
+                        #prev-btn { left: 20px; } #next-btn { right: 20px; }
+                        @media (max-width: 768px) {
+                            .book { width: 100%; height: auto; perspective: none; }
+                            .page, .page:nth-child(odd), .page:nth-child(even) { position: relative; width: 100%; height: auto; left: 0; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transform: none !important; }
+                            #prev-btn, #next-btn { display: none; }
+                        }
+                    </style></head>
+                    <body>
+                        <div class="book" id="book">${pagesHtml}</div>
+                        <button id="prev-btn">&lt;</button><button id="next-btn">&gt;</button>
+                        <script>
+                            const book = document.getElementById('book');
+                            const pages = Array.from(book.getElementsByClassName('page'));
+                            const prevBtn = document.getElementById('prev-btn');
+                            const nextBtn = document.getElementById('next-btn');
+                            let currentFlipped = 0;
+                            function updateBook() {
+                                pages.forEach((page, i) => {
+                                    const pageNum = Math.floor((i + 1) / 2);
+                                    if (i > 0 && pageNum <= currentFlipped) page.classList.add('flipped');
+                                    else page.classList.remove('flipped');
+                                    page.style.zIndex = pages.length - i;
+                                });
+                            }
+                            nextBtn.addEventListener('click', () => { if (currentFlipped < Math.floor(pages.length / 2)) { currentFlipped++; updateBook(); } });
+                            prevBtn.addEventListener('click', () => { if (currentFlipped > 0) { currentFlipped--; updateBook(); } });
+                            updateBook();
+                        <\/script>
+                    </body></html>
+                `;
+                const blob = new Blob([bookHtml], { type: 'text/html' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'digital-book.html';
+                link.click();
+                URL.revokeObjectURL(link.href);
+                showNotification("書本匯出完成！", false);
+            });
+
+            // =======================================================
+            // ===            MAIN GENERATION LOGIC                ===
+            // =======================================================
+
+            function splitArticleIntoParagraphs(article) {
+                const sentences = article.split(/(?<=[。！？；])/g);
+                const paragraphs = []; let currentParagraph = '';
+                sentences.forEach(sentence => {
+                    if ((currentParagraph + sentence).length <= 100) currentParagraph += sentence;
+                    else { if (currentParagraph.trim()) paragraphs.push(currentParagraph.trim()); currentParagraph = sentence; }
+                });
+                if (currentParagraph.trim()) paragraphs.push(currentParagraph.trim());
+                return paragraphs.filter(p => p.trim() !== '');
+            }
+
+            async function translateToEnglish(text) {
+                const myEmail = 'kenchan20151@gmail.com';
+                const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=zh-TW|en&de=${myEmail}`;
+                try {
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) throw new Error(`API status ${response.status}`);
+                    const data = await response.json();
+                    if (data.responseStatus !== 200) throw new Error(data.responseDetails);
+                    return data.responseData.translatedText;
+                } catch (error) { console.error('Translation error:', error); return null; }
+            }
+            
+            function generateImagePrompt(englishParagraph) {
+                return `Illustration of: "${englishParagraph}". Rendered in a classic manga style with an emphasis on simplicity. Use only black and white, with clean, uniform, and minimalist line art. The overall feel should be a high-contrast, clear monochrome comic panel or sketch. No text is included`;
+            }
+
+            async function generateImageWithRetries(prompt, baseSeed, attempt = 1) {
+                if (attempt > MAX_RETRIES) throw new Error(`已達最大重試次數`);
+                const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?token=Jeq-UCxbpvrqUEzN&model=flux&enhance=false&private=true&nologo=true&seed=${baseSeed + attempt}`;
+                try {
+                    const response = await fetch(imageUrl);
+                    if (!response.ok || !response.headers.get('content-type')?.startsWith('image')) throw new Error(`無效圖片`);
+                    return imageUrl;
+                } catch (error) {
+                    console.warn(`Attempt ${attempt} failed. Retrying...`, error);
+                    await new Promise(res => setTimeout(res, 1000 * attempt));
+                    return generateImageWithRetries(prompt, baseSeed, attempt + 1);
+                }
+            }
+
+            generateBtn.addEventListener('click', async function() {
+                const article = articleInput.value.trim();
+                if (!article) { showNotification('請輸入文章內容！', true); return; }
+                
+                const paragraphs = splitArticleIntoParagraphs(article);
+                currentSession = {
+                    articleText: article,
+                    chunks: [],
+                    slides: {},
+                    activeChunkIndex: 0
+                };
+                for (let i = 0; i < paragraphs.length; i += CHUNK_SIZE) {
+                    currentSession.chunks.push(paragraphs.slice(i, i + CHUNK_SIZE));
+                }
+
+                saveCurrentSession();
+                renderChapterNav();
+                await renderChunk(0); // Generate and render the first chunk
+            });
+
+            async function generateSlidesForChunk(chunkIndex) {
+                generateBtn.disabled = true;
+                resetBtn.disabled = true;
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+                
+                const chunkParagraphs = currentSession.chunks[chunkIndex];
+                const startSlideIndex = chunkIndex * CHUNK_SIZE;
+                displaySlides(chunkParagraphs.map(p => ({paragraph: p, status: 'pending'}))); // Show loading spinners
+
+                let completedCount = 0;
+                
+                async function processParagraph(para, indexInChunk) {
+                    const globalIndex = startSlideIndex + indexInChunk;
+                    const slideElement = slidesContainer.children[indexInChunk];
+                    const imageContainer = slideElement.querySelector('.slide-image');
+                    const baseSeed = Math.floor(Math.random() * 1000000);
+                    
+                    try {
+                        const englishPara = await translateToEnglish(para);
+                        if (!englishPara) throw new Error('翻譯失敗');
+                        const prompt = generateImagePrompt(englishPara);
+                        const imageUrl = await generateImageWithRetries(prompt, baseSeed);
+                        
+                        currentSession.slides[globalIndex] = { paragraph: para, imageUrl, status: 'success' };
+                        imageContainer.innerHTML = `<img src="${imageUrl}" alt="幻燈片插圖" style="cursor: pointer;" title="點擊以重新生成此圖片">`;
+
+                    } catch (error) {
+                        currentSession.slides[globalIndex] = { paragraph: para, imageUrl: null, status: 'error' };
+                        imageContainer.innerHTML = `<div class="generation-error" data-action="retry-generation" title="點擊以重新生成此圖片"><i class="fas fa-sync-alt"></i><p>${error.message}<br>點擊重試</p></div>`;
+                    } finally {
+                        completedCount++;
+                        progressBar.style.width = `${(completedCount / chunkParagraphs.length) * 100}%`;
+                    }
+                }
+
+                const processingPromises = [];
+                for (let i = 0; i < chunkParagraphs.length; i++) {
+                    processingPromises.push(processParagraph(chunkParagraphs[i], i));
+                }
+                await Promise.all(processingPromises);
+
+                showNotification(`Chapter ${chunkIndex + 1} 生成完成！`);
+                generateBtn.disabled = false;
+                resetBtn.disabled = false;
+                exportBookBtn.disabled = false;
+                progressContainer.style.display = 'none';
+                saveCurrentSession();
+            }
+
+            slidesContainer.addEventListener('click', async function(event) {
+                // Placeholder for single image regeneration
+            });
+
+            // =======================================================
+            // ===          SLIDE NAVIGATION & INIT                ===
+            // =======================================================
+            
+            prevSlideBtn.addEventListener('click', () => {
+                const slideWidth = slidesContainer.querySelector('.slide')?.offsetWidth || 0;
+                slidesContainer.scrollBy({ left: -(slideWidth + 30), behavior: 'smooth' });
+            });
+            
+            nextSlideBtn.addEventListener('click', () => {
+                const slideWidth = slidesContainer.querySelector('.slide')?.offsetWidth || 0;
+                slidesContainer.scrollBy({ left: slideWidth + 30, behavior: 'smooth' });
+            });
+            
+            // --- Initial Load ---
+            loadSessionFromLocalStorage();
+        });
+
+        // =======================================================
+        // ===        ORIGINAL MODAL EDITOR SCRIPT (KEPT)        ===
+        // =======================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // This self-contained script is preserved as is.
+            const modal = document.getElementById('outline-editor-modal');
+            const modalTextarea = document.getElementById('modal-textarea');
+            const modalTitle = document.getElementById('modal-title');
+            const modalSaveBtn = document.getElementById('modal-save-btn');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const ocrBtn = document.getElementById('modal-ocr-btn');
+            if(!modal) return;
+            let currentEditingElement = null;
+            function openModalEditor(element) {
+                currentEditingElement = element;
+                modalTextarea.value = currentEditingElement.value;
+                if (element.id === 'article-input') { modalTitle.textContent = '輸入文章內容'; } 
+                else { modalTitle.textContent = '編輯內容'; }
+                modal.style.display = 'flex'; modalTextarea.focus();
+            }
+            function closeModalEditor() { modal.style.display = 'none'; currentEditingElement = null; }
+            function saveAndCloseEditor() {
+                if (currentEditingElement) {
+                    currentEditingElement.value = modalTextarea.value;
+                    currentEditingElement.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                closeModalEditor();
+            }
+            document.body.addEventListener('click', (event) => {
+                if (event.target.id === 'article-input' && event.target.tagName === 'TEXTAREA') {
+                    event.preventDefault(); openModalEditor(event.target);
+                }
+            });
+            modalSaveBtn.addEventListener('click', saveAndCloseEditor);
+            modalCloseBtn.addEventListener('click', closeModalEditor);
+            modal.addEventListener('click', (event) => { if (event.target === modal) closeModalEditor(); });
+            let ocrWindow = null;
+            const VERCEL_OCR_URL = 'https://gemini-ocr-proxy.vercel.app/';
+            ocrBtn.addEventListener('click', () => {
+                if (ocrWindow && !ocrWindow.closed) { ocrWindow.focus(); return; }
+                ocrWindow = window.open(VERCEL_OCR_URL, 'OCRWindow', 'width=650,height=850,scrollbars=yes,resizable=yes');
+            });
+            window.addEventListener('message', (event) => {
+                if (event.origin !== new URL(VERCEL_OCR_URL).origin) return;
+                if (event.data && event.data.type === 'ocrResult') {
+                    modalTextarea.value += (modalTextarea.value.trim() ? '\n' : '') + event.data.text;
+                    if (ocrWindow) ocrWindow.close();
+                    modalTextarea.focus();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

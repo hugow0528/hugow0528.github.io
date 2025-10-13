@@ -1,88 +1,93 @@
-Of course! Here are the completed answers for the exercises based on the provided text.
+MOCK TEST 7 B1
+
+### **Answers for Text 2: The pros and cons of technological advances**
+
+**19. Complete the summary of paragraph 1.**
+*   (i) **Technology** is everywhere. While some people think its development is (ii) **advantageous** to society, others are more (iii) **concerned**.
+
+**20. Which word or phrase in paragraph 2 is used to indicate the rapid development of technology?**
+*   non-stop progress
+
+**21. Find a word or phrase in paragraph 3 that means 'in serious danger'.**
+*   in peril
+
+**22. Match the advantages of AI with the examples.**
+*   **AI can (i):** do repetitive/mind-numbing tasks / reduce human mistakes
+*   **AI can (ii):** do difficult or risky tasks
+
+**23. Complete the table with AI applications from paragraph 4.**
+*   (i) ... an elderly person needs help to walk: **a robot skeleton**
+*   (ii) ... one needs a safe operation: **robot surgeons**
+
+**24. Why does the writer say that 'we should not allow ourselves to believe that technological innovation is always a rosy picture'?**
+*   Because developing and maintaining advanced technology is very expensive, and fixing major failures or malware attacks can cost a lot of money and time.
+
+**25. Find a word in paragraph 6 with a similar meaning to 'opposing very strongly'.**
+*   hostile
+
+**26. What does 'such unnatural foods' (line 31) refer to?**
+*   It refers to the healthy crops produced in higher yields through genetic engineering.
+
+**27. Complete the table with ONE word taken from paragraph 7.**
+*   (i) yields
+*   (ii) unnatural
+*   (iii) safe
+*   (iv) privacy
+
+**28. With reference to paragraph 7, why does the writer think that privacy is becoming less important to us?**
+*   The writer thinks this because we are increasingly allowing surveillance technologies like AI-powered CCTV to monitor our daily actions, even for minor offenses.
+
+**29. What is the writer's tone in paragraph 7?**
+*   A (sceptical)
+
+**30. Using the information from paragraphs 5-7, complete the table.**
+*   **(i) Example for Paragraph 5:** Repair and maintenance of AI systems can be costly, and their software requires constant updates.
+*   **(ii) Example for Paragraph 6:** Cashiers in supermarkets and shops being replaced with self-service machines.
+*   **(iii) Problem for Paragraph 7:** There are concerns about the safety and consequences of relying on new technologies.
+
+**31. Do you agree with the concluding statement? (Sample Answer)**
+*   **Yes, I agree.** The text provides powerful examples of technology's benefits, such as performing tasks too risky for humans (like space exploration) and improving health through robot surgeons and aids for the elderly. If these technologies are implemented with caution to manage the risks mentioned, like job loss and privacy concerns, the overall benefit to humanity will be enormous.
+
+**32. Match the main idea with the paragraph.**
+*   i) Paragraph 5: **D** (High costs are involved.)
+*   ii) Paragraph 6: **E** (It will have an impact on the labour market.)
+*   iii) Paragraph 7: **C** (We should prioritize our safety and privacy.)
+*   iv) Paragraph 8: **A** (When used carefully, they can be good.)
+
+**33. Match the comments with the person.**
+*   i) Yoky Matsuoka: **E** (It'll be life changing for people with disabilities.)
+*   ii) Thomas Dietterich: **B** (It'll help people with age-related vision problems.)
+*   iii) The writer: **D** (If we overuse it, it'll create more problems to society than it solves.)
+
+**34. What is the text type of Text 2?**
+*   D (An argumentative essay)
 
 ---
 
-**1. What phrase is used in lines 1–4 to define the ‘Internet of things’ (title)?**
-Interconnected technology.
+### **Answers for Text 3: (AI in Education)**
 
-**2. Complete the following summary of paragraph 1 with a word taken from the paragraph.**
-(i) **webcam**
-(ii) **sensors**
-(iii) **network**
+**35. Which of the following does the writer NOT imply in paragraph 1?**
+*   A (The government is opposed to AI in the classroom.)
 
-**3. What does the first ‘it’ (line 18) refer to?**
-The ‘Internet of things’.
+**36. What is the purpose of the word 'importantly' (line 2) in paragraph 1?**
+*   To stress that the wariness of parents is a significant and noteworthy factor.
 
-**4. i) Find a metaphor in paragraphs 2 and 3 which describes the ‘Internet of things’.**
-The colonization of everyday life.
+**37. Complete the notes about paragraph 3.**
+*   (i) information-gathering
+*   (ii) time
+*   (iii) targeted
+*   (iv) thinking
 
-**ii) Explain the meaning of this metaphor.**
-It means that information processing is taking over and controlling every aspect of our daily lives, similar to how a colonizing power takes control of a territory.
+**38. What does 'it' (line 13) refer to?**
+*   AI technology / AI in education
 
-**5. Complete this sentence using the information in paragraph 3.**
-The main objective of connecting devices through the Internet of things is **to capture data that can then be used to measure and control the world around us.**
+**39. Do you agree that the debate on educational tools is settled? (Sample Answer)**
+*   **No, I disagree.** The writer themselves brings up a critical, unsettled issue: that AI has the potential to increase the education gap between the rich and the poor. Until a clear plan exists to make these tools accessible to every student, the debate over their overall merit for society cannot be considered settled.
 
-**6. Complete the summary of paragraphs 3 and 4 by selecting the best option from the choices below.**
-(i) **B** (collect information)
-(ii) **A** (people’s homes)
-(iii) **C** (look different)
+**40. Match the comments with the person.**
+*   i) The writer: **E** (It's important that the technology is available for everyone.)
+*   ii) An Education Bureau official: **A** (We want more schools to adopt these tools.)
+*   iii) A colleague of the writer: **C** (This technology has been a great help.)
 
-**7. Below is a summary of paragraph 5...**
-| Summary | Correction |
-| :--- | :--- |
-| i) All the main tech **customers** have their version of a virtual assistant | **companies** |
-| e.g. and these are all based on **noticing** natural speech. Currently, | recognizing |
-| ii) nearly all virtual assistants have a female persona, as | **✓** |
-| iii) everyone, regardless of **device**, prefers to interact with women. | **gender** |
-| iv) Unlike others, Google's assistant does not have its own **offering**. | **name** |
-
-**8. What is the tone of the writer in paragraph 6?**
-**D** cautionary
-
-**9. Complete the following information about the OpenTable app by using a word taken from paragraphs 8–10.**
-(i) **reservations**
-(ii) **neutral**
-(iii) **diners**
-(iv) **accelerated**
-(v) **cut**
-(vi) **data**
-
-**10. Why would ‘conscientious diners’ (line 55) prefer to make reservations by phone rather than use OpenTable?**
-Because OpenTable creates problems for restaurants, such as an accelerated pace of work and taking a cut of their revenue. Conscientious diners make reservations by phone to avoid contributing to these issues.
-
-**11. Who or what does the word ‘This’ (line 58) refer to?**
-Google Home’s frictionless default to making reservations via OpenTable.
-
-**12. Why are the people who devised Google Home ‘a remarkably homogeneous cohort’ (lines 59–60)?**
-Because they are a similar group of young designers and engineers who are very different from the general population.
-
-**13. Based on the information in paragraph 12, complete the summary by writing ONE word in each blank below.**
-(i) **design**
-(ii) **use**
-(iii) **population**
-(iv) **normalize**
-
-**14. Decide whether the following statements are True (T), False (F) or Not Given (NG) in paragraph 13.**
-i) **T** (True)
-ii) **NG** (Not Given)
-iii) **F** (False)
-
-**15. With reference to paragraph 14, explain how the fact that virtual assistants ‘are listening to everything that transpires in their presence, and are doing so at all times’ (lines 74–75) has different benefits to the users and the manufacturers.**
-i) **Users:** They benefit because the device is always ready to detect the 'wake word' and respond to their commands.
-ii) **Manufacturers:** They benefit by being able to harvest vast amounts of data which can be used for targeted advertising and other commercial purposes.
-
-**16. The fact that the commercial purposes of virtual assistants ‘are only disclosed deep in the terms and conditions that govern their use’ (lines 77–78) suggests that ...**
-**C** users may object to them.
-
-**17. What does ‘it’ (line 80) refer to?**
-The value that might be derived from the harvested data in the future.
-
-**18. Use the information given in Text 1 to match each of the following comments with a person or organization mentioned in the text.**
-i) **Serious Eats:** **B**
-ii) **Pew Research Center:** **E**
-iii) **Google:** **C**
-iv) **Adam Greenfield:** **A**
-v) **Mike Kuniavsky:** **F**
-
-**19. The main purpose of the text is to ...**
-**B** warn readers about the Internet of things.
+**41. Which of the following is the best title for Text 3?**
+*   C (High time for wider adoption of AI in schools)
